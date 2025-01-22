@@ -1,0 +1,53 @@
+{{define "project"}}
+{{template "header" .}}
+    <main class="container">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <h5><b>{{.project.Name}}</b></h5>
+                <p>Repositories</p>
+                <input type="hidden" id="projectId" value="{{.project.Id}}" />
+            </div>
+            <div>
+                
+                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#repoModal">+ Add New Repository</button>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-8 col-sm-8 search">
+                <i class="fa fa-search"></i>
+                <input type="text" placeholder="Search Repository ... " class="form-control" />
+                
+            </div>
+            <div class="col-md-4 col-sm-4">
+                <!-- <div class="card">
+                    <ul>
+                        <li><a href="">Version Cascade</a></li>
+                    </ul>
+                </div> -->
+                <button class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 col-sm-8">
+                {{range .repositories}}
+                    <div class="card repo_list">
+                        <a class="card_anchor" href="/repository/{{.Id}}/deps?projectId={{.ProjectId}}">
+                            <p><b>{{.Name}}</b></p>
+                            <p>{{.Url}}</p>
+                            <div class="repo_meta">
+                                <small><b>Build Tool:</b> {{.BuildTool}}</small>
+                                <small><b>Dep File:</b> {{.DepFileName}}</small>
+                            </div>
+                            <div class="repo_tags"><small class="badge">Java</small><small class="badge">Maven</small></div>
+                        </a>
+                    </div>
+                {{end}}
+            </div>
+            <div class="col-md-4 col-sm-4"></div>
+        </div>
+        {{template "repoModal" .}}
+        {{template "versionCascadeModal" .}}
+    </main>
+{{template "footer" .}}
+{{end}}

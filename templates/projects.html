@@ -1,0 +1,25 @@
+{{define "projects"}}
+{{template "header" .}}
+    <main class="container">
+        <div style="display: flex; justify-content: space-between;">
+            <div><h5><b>Projects</b></h5></div>
+            <div><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#projectModal">+ Create New Project</button></div>
+        </div>
+        <hr />
+        <div class="row project_list">
+            {{range $p := .projects}}
+                <div class="col-md-4 col-sm-4">
+                    <div class="card">
+                        <a class="card_anchor" href="/project/{{$p.id}}">
+                            <p><b>{{$p.id}}. {{$p.name}}</b></p>
+                            <div>{{$p.description}}</div>
+                            <small>Created At: {{$p.createdAt}}</small>
+                        </a>
+                    </div>
+                </div>
+            {{end}}
+        </div>
+        {{template "projectModal" .}}
+    </main>
+{{template "footer" .}}
+{{end}}

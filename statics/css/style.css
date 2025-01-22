@@ -1,0 +1,143 @@
+:root {
+    --solid-color: #182a2d;
+    --while-color: #fff; 
+    --gray-color: #adafb0;
+    --light-gray-color: #cfd3d5;
+}
+
+body {
+    font-size: 14px;
+}
+
+header {
+    background-color: var(--solid-color);
+    color: var(--while-color);
+}
+
+footer {
+    background: var(--gray-color);
+    text-align: center;
+    color: #9c9999;
+}
+
+main {
+    padding: 10px 0px;
+    min-height: 100vh;
+}
+
+hr {
+    margin: 5px 0px;
+}
+
+p, h5, h4, h3, h2, h1, pre {
+    margin: 0px;
+}
+
+.navbar {
+    padding: 0px;
+}
+
+.navbar-nav .nav-item a {
+    color: var(--while-color);
+}
+
+.pull-right {
+    float: right;
+}
+
+.card {
+    padding: 10px;
+    margin: 5px 0px;
+}
+
+.close {
+    font-size: 1.2rem;
+}
+
+.btn-primary {
+    background-color: var(--solid-color);
+    border-color: var(--solid-color);
+}
+
+.btn-secondary {
+    background-color: var(--gray-color);
+    border-color: var(--gray-color);
+    color: var(--solid-color);
+}
+
+.project_list .card {
+    padding: 10px;
+}
+
+.card_anchor {
+    color: var(--solid-color);
+}
+
+.card_anchor:hover {
+    text-decoration: none;
+    color: var(--solid-color);
+}
+
+.repo_list p b {
+    color: var(--solid-color);
+}
+
+.repo_meta small {
+    margin-right: 5px;
+}
+
+.repo_tags .badge {
+    background-color: var(--light-gray-color);
+    margin-right: 5px;
+}
+
+.search i {
+    position: absolute;
+    top: 12px;
+    padding-left: 10px;
+}
+
+.search input {
+    padding-left: 27px;
+}
+
+.line_no {
+    border-right: 1px solid #ccc;
+    padding-right: 2px;
+    margin-right: 2px;
+}
+
+.content_viewer {
+    font-size: 12px;
+    line-height: 14px;
+}
+
+.nav-tabs>li {
+    float: left;
+    margin-bottom: -1px;
+}
+
+.nav>li {
+    position: relative;
+    display: block;
+}
+
+.nav-tabs>li>a {
+    margin-right: 2px;
+    line-height: 1.42857143;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+}
+
+.nav>li>a {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+}
+.nav-tabs>li>a.active, .nav-tabs>li>a.active:focus, .nav-tabs>li>a.active:hover {
+    color: #555;
+    cursor: default;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom-color: transparent;
+}

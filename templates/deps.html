@@ -1,0 +1,60 @@
+{{define "deps"}}
+{{template "header" .}}
+    <main class="container">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <h5><b>{{.Name}}</b></h5>
+                <p>Dependencies</p>
+               
+            </div>
+            <div>
+                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#repoModal">+ Add New Repository</button>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-9 col-sm-9">
+                <div>
+                    <b>Properties</b>
+                    <ul id="properties">
+                        {{range $key, $value := .Properties.Entries}}
+                            <li>
+                                <pre><span id="{{$key}}">{{$key}}:</span>
+                                <input type="text" value="{{$value}}" onchange="deps.onVersionChange('property', this.value, {'name': '{{$key}}'})" /></pre></li>
+                        {{end}}
+                    </ul>
+                </div>
+                <b>Dependencies</b>
+                <div id="content">
+                    <!-- {{range $ln, $value := .LinedContent}}
+                        <pre>{{$value}}</pre>
+                    {{end}} -->
+                    {{range $ln, $value := .Dependencies}}
+                        <div class="card">
+                            <pre style="font-size: 14px;">{{$value.GroupID}}</pre>
+                            <pre class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;{{$value.ArtifactID}}</pre>
+                            <p class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="text" value="{{$value.Version}}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '{{$value.GroupID}}', 'artifactId': '{{$value.ArtifactID}}'} , this.value)" />
+                            </p>
+                        </div>
+                    {{end}}
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <form id="commitForm" class="card">
+                    <div class="form-group">
+                        <input type="hidden" value="{{.RepoId}}" id="repoId"/>
+                        <input type="hidden" value="{{.ProjectId}}" id="projectId"/>
+                        <input type="hidden" value="{{.Branch}}" id="branch"/>
+                        <input type="hidden" value="{{.SHA}}" id="sha"/>
+                        <input type="text" class="form-control" name="commitMessage" id="commitMessage" placeholder="Commit Message ..."/>
+                        <span id="cm_err" style="color: red;display: none;">Commit message is required!</span>
+                        <br />
+                    </div>
+                </form>
+                <button class="btn btn-sm btn-primary" onclick="deps.updateChanges()">Push Changes</button>
+            </div>
+        </div>
+    </main>
+{{template "footer" .}}
+{{end}}
