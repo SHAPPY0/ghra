@@ -8,3 +8,9 @@ type Project struct {
 	CreatedAt 	string
 	UpdatedAt 	string	
 }
+
+
+type ProjectReq struct {
+	Name 	string
+	Description string
+}

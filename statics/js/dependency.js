@@ -70,8 +70,17 @@ dependency.prototype.chooseAllRepos = function() {
     // let 
 }
 
+dependency.prototype.vcBack = function() {
+    document.getElementById("vcCancel").style.display = "block";
+    document.getElementById("vcNext").style.display = "block";
+    document.getElementById("vcBack").style.display = "none";
+    document.getElementById("vcPushChanges").style.display = "none";
+    openTab(0);
+}
+
 dependency.prototype.getVCDeps = async function() {
     let repoIds = this.versionCascade.repositories;
+
     if (repoIds.length) {
         let data = {
             "repoIds": repoIds,
@@ -90,11 +99,109 @@ dependency.prototype.getVCDeps = async function() {
         });
         let result = await rawResponse.json();
         if (result && result.status == 200){
-            showAlert("Success", result.message);
+            document.getElementById("vcCancel").style.display = "none";
+            document.getElementById("vcNext").style.display = "none";
+            document.getElementById("vcBack").style.display = "block";
+            document.getElementById("vcPushChanges").style.display = "block";
+            bindVCDeps(result);
+            openTab(1);
         } else showAlert("Error", result.error || result.message);
     } else {
         showAlert("Error", "Please choose one or more repositories.");
     }
+}
+
+function bindVCDeps(result) {
+    let form = document.forms["vcDepsForm"];
+    let propertiesDom = document.getElementById("properties");
+    let dependencies = document.getElementById("dependencies");
+    let { Properties, Dependencies } = result.data;
+    for (let prop in Properties) {
+        let li = `<li>
+                    <pre><span id="${prop}">${prop}:</span>
+                    <input type="text" value="${Properties[prop]}" onchange="deps.onVersionChange('property', this.value, {'name': '${prop}'})" /></pre>
+                </li>`;
+        propertiesDom.innerHTML = li;
+    }
+
+    for (let i = 0; i < Dependencies.length; i++) {
+        let dep = Dependencies[i];
+        let depDiv = `<div class="card">
+                            <pre style="font-size: 14px;">${dep.GroupID}</pre>
+                            <pre class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;${dep.ArtifactID}</pre>
+                            <p class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="text" value="${dep.Version}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '${dep.GroupID}', 'artifactId': '${dep.ArtifactID}'})" />
+                            </p>
+                        </div>`;
+        dependencies.innerHTML = depDiv;
+    }
+    form.projectId.value = result.data.ProjectId;
+    form.repoIds.value = result.data.RepoIds;
+}
+
+function openTab(tabNo) {
+    // Get all tabs and tab panes
+    var tabs = document.querySelectorAll("#myTab .nav-link");
+    var tabPanes = document.querySelectorAll("#myTabContent .tab-pane");
+
+    // Find the active tab
+    var activeIndex = 0;
+    tabs.forEach((tab, index) => {
+        if (tab.classList.contains("active")) {
+            activeIndex = index;
+        }
+    });
+
+    // Remove the active class from the current tab and tab pane
+    tabs[activeIndex].classList.remove("active");
+    tabs[activeIndex].ariaSelected = "false";
+    tabPanes[activeIndex].classList.remove("show", "active");
+
+    // Calculate the index of the next tab (wrap around if at the end)
+    var nextIndex = tabNo;
+
+    // Add the active class to the next tab and tab pane
+    tabs[nextIndex].classList.add("active");
+    tabs[nextIndex].ariaSelected = "true";
+    tabPanes[nextIndex].classList.add("show", "active");
+}
+
+dependency.prototype.vcPushChanges = async function() {
+    let form = document.forms["vcDepsForm"];
+    let repoIds = [];
+    form.repoIds.value.split(",").forEach(id => repoIds.push(parseInt(id)));
+    let data = [];
+    for (let i = 0; i < repoIds.length; i++) {
+        data.push({
+            "newContent": {"properties": this.properties, "dependencies": this.dependencies},
+            "projectId": parseInt(form.projectId.value),
+            "repoId": repoIds[i],
+            "message": "form.commitMessage.value"
+        });
+    }
+    console.log(">:<", data);
+    // if (!data.message) {
+    //     cm_err.style.display = "block";
+    //     return;
+    // }
+    // cm_err.style.display = "none";
+    const rawResponse = await fetch("http://0.0.0.0:8080/vc/deps", {
+        method: "PUT",
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    let result = await rawResponse.json();
+    if (result && result.status == 200){
+        msg = result.message + "\n\n" + JSON.stringify(result.data);
+        closeModal("versionCascadeModal");
+        showAlert("Success", msg);
+    } else {
+        msg = (result.error || result.message) + "\n\n" + JSON.stringify(result.data);
+        showAlert("Error", msg);
+    } 
 }
 
 const deps = new dependency();

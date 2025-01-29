@@ -87,7 +87,7 @@ async function addRepository() {
         "user": form.user.value,
         "token": form.token.value,
         "buildTool": form.buildTool.value,
-        "depFileName": form.depFileName.value,
+        "depFilePath": form.depFilePath.value,
         "tags": form.tags.value,
     }
     const rawResponse = await fetch("http://0.0.0.0:8080/repository", {

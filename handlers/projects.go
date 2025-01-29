@@ -9,11 +9,6 @@ import (
 	"github.com/shappy0/ghra/models"
 )
 
-type ProjectReq struct {
-	Name 	string
-	Description string
-}
-
 func ProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	var db *sql.DB
 	if db = (r.Context().Value("db")).(*sql.DB); db == nil {
@@ -58,12 +53,13 @@ func getProjectList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func createProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	var reqBody ProjectReq
+	var reqBody models.ProjectReq
 	if err := utils.GetBody(r.Body, &reqBody); err != nil {
-		http.Error(w, "Invalid request data", http.StatusBadRequest)
+		RenderErrorTemplate(w, http.StatusBadRequest, "Invalid request data")
 		return
 	}
-	result, err := db.Exec("INSERT INTO projects_tbl(name, description, active, createdAt, updatedAt) VALUES(?, ?, ?, ?, ?)", 
+	query := "INSERT INTO projects_tbl(name, description, active, createdAt, updatedAt) VALUES(?, ?, ?, ?, ?)"
+	result, err := db.Exec(query, 
 		reqBody.Name,
 		reqBody.Description,
 		true,
@@ -71,8 +67,7 @@ func createProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		nil,
 	)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		RenderErrorTemplate(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	count, err := result.RowsAffected()
@@ -82,7 +77,7 @@ func createProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if count == 1 {
 		Response(w, http.StatusOK, "Project created successfully", nil)
 	} else {
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		RenderErrorTemplate(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 	
@@ -91,7 +86,7 @@ func createProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 func ProjectHandler(w http.ResponseWriter, r *http.Request) { 
 	var db *sql.DB
 	if db = (r.Context().Value("db")).(*sql.DB); db == nil {
-		http.Error(w, "Invalid DB connection", http.StatusInternalServerError)
+		RenderErrorTemplate(w, http.StatusInternalServerError, "Invalid DB Connection")
 		return
 	}
 	if r.Method == http.MethodGet {
@@ -103,7 +98,7 @@ func getProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var project models.Project
 	projectId := r.PathValue("id") 
 	if projectId == "" {
-		http.Error(w, "Invalid projectId", http.StatusBadRequest)
+		RenderErrorTemplate(w, http.StatusBadRequest, "Invalid ProjectId")
 		return
 	}
 	db.QueryRow(`SELECT * FROM projects_tbl WHERE id = ?`, projectId).Scan(&project.Id, 
@@ -114,7 +109,7 @@ func getProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			&project.UpdatedAt)
 	repos, err := getRepositoryList(w, r, db, project.Id)
 	if err != nil {
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		RenderErrorTemplate(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	data := map[string]interface{}{

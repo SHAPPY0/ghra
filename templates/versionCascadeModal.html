@@ -9,47 +9,56 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    
-                    <ul class="nav nav-tabs">
-                        <li ><a class="active" data-toggle="tab" href="#chooseRepos">Choose Repos</a></li>
-                        <li><a data-toggle="tab" href="#updateVersion" style="cursor: none;">Update Versions</a></li>
-                    </ul>
-                    
-                    <div class="tab-content">
-                        <form id="vcForm">
-                            <div id="chooseRepos" class="tab-pane fade in active show">
-                                <br />
-                                <div style="display: flex;">
-                                    <input type="checkbox" name="repos" onchange="deps.chooseAllRepos()" />
-                                    <span style="padding-left:10px;">
-                                        <b>Choose All</b>
-                                    </span>
-                                </div>
-                                <hr />
-                                <ul style="padding-left: 0px; height: 250px; overflow-y: auto;">
-                                {{range .repositories}}
-                                    <li style="display: flex; margin-bottom:10px;">
-                                        <input type="checkbox" name="{{.Name}}" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
-                                        <div style="padding-left:10px;" for="{{.Name}}">
-                                            <b>{{.Name}}</b>
-                                            <p>{{.Url}}</p>
-                                        </div>
-                                    </li>
-                                {{end}}
-                                </ul>
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                          <a class="nav-link active" id="ChooseRepos-tab" data-toggle="tab" role="tab" aria-controls="ChooseRepos" aria-selected="true">Choose Repos</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" id="UpdateVersions-tab" data-toggle="tab" role="tab" aria-controls="UpdateVersions" aria-selected="false">Update Versions</a>
+                        </li>
+                      </ul>
+                      <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="ChooseRepos" role="tabpanel" aria-labelledby="ChooseRepos-tab">
+                            <br />
+                            <div style="display: flex;">
+                                <input type="checkbox" name="repos" onchange="deps.chooseAllRepos()" />
+                                <span style="padding-left:10px;">
+                                    <b>Choose All</b>
+                                </span>
                             </div>
-                            <div id="updateVersion" class="tab-pane fade">
-                                <h3>Menu 1</h3>
-                                <p>Some content in menu 1.</p>
-                            </div>
-                        </form>
-                    </div>
+                            <hr />
+                            <ul style="padding-left: 0px; height: 250px; overflow-y: auto;">
+                            {{range .repositories}}
+                                <li style="display: flex; margin-bottom:10px;">
+                                    <input type="checkbox" name="{{.Name}}" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
+                                    <div style="padding-left:10px;" for="{{.Name}}">
+                                        <b>{{.Name}}</b>
+                                        <p>{{.Url}}</p>
+                                    </div>
+                                </li>
+                            {{end}}
+                            </ul>
+                        </div>
+                        <div class="tab-pane fade" id="UpdateVersions" role="tabpanel" aria-labelledby="UpdateVersions-tab">
+                            <form name="vcDepsForm">
+                                <b>Properties</b>
+                                <ul id="properties"></ul>
+
+                                <b>Dependencies</b>
+                                <div id="dependencies"></div>
+
+                                <input type="hidden" id="projectId" value=""/>
+                                <input type="hidden" id="repoIds" value="" />
+                            </form>
+                        </div>
+                      </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-sm btn-secondary" data-toggle="tab" href="#chooseRepos">Back</button>
-                    <button type="button" class="btn btn-sm btn-secondary" data-toggle="tab" href="#updateVersion" onclick="deps.getVCDeps()">Next</button>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addRepository()">Push Changes</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="vcCancel">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-toggle="tab" href="#chooseRepos" style="display: none;" onclick="deps.vcBack()" id="vcBack">Back</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="deps.getVCDeps()" id="vcNext">Next</button>
+                    
+                    <button type="button" class="btn btn-sm btn-primary" onclick="deps.vcPushChanges()" style="display: none;" id="vcPushChanges">Push Changes</button>
                 </div>
             </div>
         </div>

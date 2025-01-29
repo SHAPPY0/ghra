@@ -6,6 +6,8 @@ import (
 	"flag"
 	"context"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"database/sql"
 	"github.com/shappy0/ghra/handlers"
 	"github.com/shappy0/ghra/utils"
@@ -75,8 +77,26 @@ func main() {
 		Addr: addr,
 		Handler: enableCORS(dbMiddleware(mux)),
 	}
-	log.Printf("Webserver started on http://0.0.0.0" + addr)
+	log.Printf("Webserver starting on http://0.0.0.0" + addr)
+	// go openWeb("http://localhost" + addr)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Error: " + err.Error())
 	} 
+}
+
+func openWeb(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default:
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	return exec.Command(cmd, args...).Run()
 }

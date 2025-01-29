@@ -18,6 +18,14 @@ func GetRepoName(url string) string {
 	return repoName
 }
 
+func GetDepFilePath(path string) string {
+	p := path
+	if p != "" && p[0] == '/' {
+		p = p[1:]
+	}
+	return p
+} 
+
 func StrToInt(val string) int {
 	v, err := strconv.Atoi(val)
 	if err != nil {

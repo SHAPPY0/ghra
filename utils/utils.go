@@ -17,3 +17,11 @@ func GetBody(data io.ReadCloser, v any) error {
 	}
 	return nil
 }
+
+// func StrToInt(val string) int {
+// 	v, err := strconv.Atoi(val)
+// 	if err != nil {
+// 		return 0
+// 	}
+// 	return v
+// }

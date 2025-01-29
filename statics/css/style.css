@@ -17,7 +17,7 @@ header {
 footer {
     background: var(--gray-color);
     text-align: center;
-    color: #9c9999;
+    color: var(--solid-color);
 }
 
 main {
@@ -140,4 +140,28 @@ p, h5, h4, h3, h2, h1, pre {
     background-color: #fff;
     border: 1px solid #ddd;
     border-bottom-color: transparent;
+}
+
+#myTab .nav-link {
+    pointer-events: none;
+    color: var(--solid-color);
+}
+
+.modal-header {
+    background-color: var(--solid-color);
+    color: var(--while-color);
+}
+
+.modal .close {
+    color: #fff;
+}
+
+.noDataLabel {
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 50px;
+    color: #ccc;
+    /* display: block; */
+    width: 100%;
 }

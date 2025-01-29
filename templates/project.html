@@ -17,14 +17,8 @@
             <div class="col-md-8 col-sm-8 search">
                 <i class="fa fa-search"></i>
                 <input type="text" placeholder="Search Repository ... " class="form-control" />
-                
             </div>
-            <div class="col-md-4 col-sm-4">
-                <!-- <div class="card">
-                    <ul>
-                        <li><a href="">Version Cascade</a></li>
-                    </ul>
-                </div> -->
+            <div class="col-md-4 col-sm-4" style="text-align: right;">
                 <button class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button>
             </div>
         </div>
@@ -37,12 +31,15 @@
                             <p>{{.Url}}</p>
                             <div class="repo_meta">
                                 <small><b>Build Tool:</b> {{.BuildTool}}</small>
-                                <small><b>Dep File:</b> {{.DepFileName}}</small>
+                                <small><b>Dep FilePath:</b> {{.DepFilePath}}</small>
                             </div>
-                            <div class="repo_tags"><small class="badge">Java</small><small class="badge">Maven</small></div>
+                            <div class="repo_tags"><small class="badge">{{.Tags}}</small></div>
                         </a>
                     </div>
                 {{end}}
+                {{ $length := len .repositories }} {{ if eq $length 0 }}
+                    <p class="noDataLabel">No Repositories</p>
+                {{ end }}
             </div>
             <div class="col-md-4 col-sm-4"></div>
         </div>

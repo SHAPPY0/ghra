@@ -63,7 +63,6 @@ func RenderErrorTemplate(w http.ResponseWriter, code int, msg string) {
 		"code": code,
 		"status": "Error",
 	}
-	log.Println("Error:" + msg)
 	if err := tmpl.ExecuteTemplate(w, "error", data); err != nil {
 		log.Println(err.Error())
 	}

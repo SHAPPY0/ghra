@@ -5,45 +5,13 @@ import (
 	"fmt"
 	"time"
 	"context"
-	"strings"
 	"net/http"
 	"database/sql"
 	"github.com/shappy0/ghra/utils"
 	"github.com/shappy0/ghra/models"
 	"github.com/shappy0/ghra/github"
 	"github.com/vifraa/gopom"
-	// "github.com/google/go-github/v68/github"
 )
-
-type RepoReq struct {
-	ProjectId	int
-	Name 		string
-	Url			string
-	Branch		string
-	User		string
-	Token		string
-	Tags		string
-	BuildTool	string
-	DepFileName	string
-}
-
-type VCDepsReq struct {
-	RepoIds []int
-	ProjectId int
-}
-
-type RepoDeps struct {
-	Name		string
-	ProjectId	int
-	RepoId 		int
-	Branch 		string
-	Content		string
-	SHA			string
-	Properties	*gopom.Properties
-	Dependencies *[]gopom.Dependency
-	LinedContent map[int]string
-	DepHashed 	map[string]string
-}
 
 func RepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 	var db *sql.DB
@@ -68,9 +36,9 @@ func RepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func getRepositoryList(w http.ResponseWriter, r *http.Request, db *sql.DB, projectId int) ([]models.Repository, error) {
 	repositories := make([]models.Repository, 0)
-	rows, err := db.Query(`SELECT id, projectId, name, url, branch, buildTool, depFileName, user, token, tags, active, createdAt, updatedAt FROM repositories_tbl where projectId = ?`, projectId)
+	query := `SELECT id, projectId, name, url, branch, buildTool, depFilePath, user, token, tags, active, createdAt, updatedAt FROM repositories_tbl where projectId = ?`
+	rows, err := db.Query(query, projectId)
 	if err != nil {
-		log.Printf("err" + err.Error())
 		return repositories, err
 	}
 	for rows.Next() {
@@ -81,7 +49,7 @@ func getRepositoryList(w http.ResponseWriter, r *http.Request, db *sql.DB, proje
 			&repo.Url, 
 			&repo.Branch,
 			&repo.BuildTool,
-			&repo.DepFileName,
+			&repo.DepFilePath,
 			&repo.User, 
 			&repo.Token, 
 			&repo.Tags, 
@@ -95,19 +63,19 @@ func getRepositoryList(w http.ResponseWriter, r *http.Request, db *sql.DB, proje
 }
 
 func createRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	var reqBody RepoReq
+	var reqBody models.RepoReq
 	if err := utils.GetBody(r.Body, &reqBody); err != nil {
 		log.Println(err.Error())
 		http.Error(w, "Invalid request data", http.StatusBadRequest)
 		return
 	}
-	result, err := db.Exec("INSERT INTO repositories_tbl(projectId, name, url, branch, buildTool, depFileName, tags, user, token, active, createdAt, updatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+	result, err := db.Exec("INSERT INTO repositories_tbl(projectId, name, url, branch, buildTool, depFilePath, tags, user, token, active, createdAt, updatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
 		reqBody.ProjectId,
 		reqBody.Name,
 		reqBody.Url,
 		reqBody.Branch,
 		reqBody.BuildTool,
-		reqBody.DepFileName,
+		reqBody.DepFilePath,
 		reqBody.Tags,
 		reqBody.User,
 		reqBody.Token,
@@ -133,15 +101,16 @@ func createRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	
 }
 
-func getDependencies(db *sql.DB, repoId, projectId int) (*RepoDeps, error) {
+func getDependencies(db *sql.DB, repoId, projectId int) (*models.RepoDeps, error) {
 	ctx := context.Background()
 	var repository models.Repository
-	var repoDeps RepoDeps
+	var repoDeps models.RepoDeps
 	if repoId == 0 || projectId == 0 {
 		return nil, fmt.Errorf("RepoId and ProjectId required")
 	}
-	
-	db.QueryRow(`SELECT id, projectId, name, url, branch, user, token, tags,buildTool, depFileName, active, createdAt, updatedAt FROM repositories_tbl WHERE id = ? AND projectId = ?`, repoId, projectId).Scan(
+	query := `SELECT id, projectId, name, url, branch, user, token, tags, buildTool, depFilePath, active, createdAt, updatedAt 
+				FROM repositories_tbl WHERE id = ? AND projectId = ?`
+	db.QueryRow(query, repoId, projectId).Scan(
 		&repository.Id,
 		&repository.ProjectId,
 		&repository.Name,
@@ -151,7 +120,7 @@ func getDependencies(db *sql.DB, repoId, projectId int) (*RepoDeps, error) {
 		&repository.Token,
 		&repository.Tags,
 		&repository.BuildTool,
-		&repository.DepFileName,
+		&repository.DepFilePath,
 		&repository.Active,
 		&repository.CreatedAt,
 		&repository.UpdatedAt,
@@ -169,21 +138,22 @@ func getDependencies(db *sql.DB, repoId, projectId int) (*RepoDeps, error) {
 	if err != nil {
 		return nil, err
 	}
-	repoDeps = RepoDeps{
+	repoDeps = models.RepoDeps{
 		Name: 			repository.Name,
 		RepoId: 		repository.Id,
 		ProjectId: 		repository.ProjectId,
 		Content: 		*fileObj.Content,
 		Branch: 		repository.Branch,
+		DepFilePath:	repository.DepFilePath,
 		SHA: 			fileObj.SHA,
 		LinedContent: 	make(map[int]string, 0),
 		Dependencies: 	parsedContent.Dependencies,
 		Properties: 	parsedContent.Properties,
 	}
-	contentSeg := strings.Split(repoDeps.Content, "\n")
-	for i := 0; i < len(contentSeg); i++ {
-		repoDeps.LinedContent[i] = contentSeg[i]
-	}
+	// contentSeg := strings.Split(repoDeps.Content, "\n")
+	// for i := 0; i < len(contentSeg); i++ {
+	// 	repoDeps.LinedContent[i] = contentSeg[i]
+	// }
 	return &repoDeps, nil 
 }
 
@@ -202,6 +172,7 @@ func readDepFileContent(ctx context.Context, repo models.Repository) (*github.Gh
 		RepoContent:	fileObj,
 		Content:		&content,
 		SHA:			fileObj.GetSHA(),
+		Branch:			repo.Branch,
 	}
 	return &GhraFile, nil 
 }
@@ -215,6 +186,8 @@ func DependenciesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/vc/deps" {
 		if r.Method == http.MethodPost {
 			getVCDependencies(w, r, db)
+		} else if r.Method == http.MethodPut {
+			pushVCDependencies(w, r, db)
 		}
 	} else if r.URL.Path == "/deps" {
 		if r.Method == http.MethodPut{
@@ -231,9 +204,9 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		ErrorResponse(w, http.StatusBadRequest, "Bad Request", nil)
 		return
 	}
-	db.QueryRow(`SELECT id, projectId, name, url, branch, user, token, tags, buildTool, depFileName, active, createdAt, updatedAt 
-					FROM repositories_tbl WHERE id = ? AND projectId = ?`, 
-					reqBody.RepoId, reqBody.ProjectId).Scan(
+	query := `SELECT id, projectId, name, url, branch, user, token, tags, buildTool, depFilePath, active, createdAt, updatedAt 
+					FROM repositories_tbl WHERE id = ? AND projectId = ?`
+	db.QueryRow(query, reqBody.RepoId, reqBody.ProjectId).Scan(
 		&repository.Id,
 		&repository.ProjectId,
 		&repository.Name,
@@ -243,7 +216,7 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		&repository.Token,
 		&repository.Tags,
 		&repository.BuildTool,
-		&repository.DepFileName,
+		&repository.DepFilePath,
 		&repository.Active,
 		&repository.CreatedAt,
 		&repository.UpdatedAt,
@@ -255,7 +228,7 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	
 	fileObj, err := readDepFileContent(ctx, repository)
 	if err != nil {
-		log.Println("Errrrrrrror:" + err.Error())
+		log.Println("Error: " + err.Error())
 		ErrorResponse(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
@@ -273,7 +246,7 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 	}
 
-	done, err := github.PushChanges(ctx, repository, reqBody, updatedDeps)
+	done, err := github.PushChanges(ctx, repository, fileObj, reqBody.Message, updatedDeps)
 	if err != nil {
 		log.Println("Error:" + err.Error())
 		ErrorResponse(w, http.StatusInternalServerError, err.Error(), nil)
@@ -285,8 +258,8 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	var reqBody VCDepsReq
-	var repoDeps []RepoDeps
+	var reqBody models.VCDepsReq
+	var repoDeps []models.RepoDeps
 	var commonProps map[string]string
 	var commonDeps []gopom.Dependency
 
@@ -326,13 +299,17 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		//filter common dependencies
 		for _, repoDep := range *repoDeps[0].Dependencies {
-			isCommon := false
+			isCommon := true
 			for _, repoDep1 := range repoDeps[1:] {
+				matched := false
 				for _, dep := range *repoDep1.Dependencies {
 					if *repoDep.GroupID == *dep.GroupID && *repoDep.ArtifactID == *dep.ArtifactID {
-						isCommon = true
+						matched = true
 						break
 					}
+				}
+				if !matched {
+					isCommon = false
 				}
 			} 
 			if isCommon {
@@ -340,14 +317,82 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			}
 		}
 		data := map[string]interface{} {
+			"ProjectId": reqBody.ProjectId,
 			"RepoIds": reqBody.RepoIds,
-			"Properties":	commonProps,
+			"Properties": commonProps,
 			"Dependencies": commonDeps,
 		}
 		Response(w, http.StatusOK, "", data)
+		// RenderTemplate(w, "deps", data)
 	} else {
 		log.Println("Error: No repositories selected to update")
 		ErrorResponse(w, http.StatusInternalServerError, "No repositories selected to update", nil)
 		return
+	}
+}
+
+func pushVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	ctx := context.Background()
+	var reqBody []models.CommitReq
+	var errored map[string]string
+	
+	if err := utils.GetBody(r.Body, &reqBody); err != nil {
+		log.Println(err.Error())
+		ErrorResponse(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	for i := 0; i < len(reqBody); i++ {
+		var repository models.Repository
+		db.QueryRow(`SELECT id, projectId, name, url, branch, user, token, tags, buildTool, depFilePath, active, createdAt, updatedAt 
+					FROM repositories_tbl WHERE id = ? AND projectId = ?`, 
+					reqBody[i].RepoId, reqBody[i].ProjectId).Scan(
+			&repository.Id,
+			&repository.ProjectId,
+			&repository.Name,
+			&repository.Url,
+			&repository.Branch,
+			&repository.User,
+			&repository.Token,
+			&repository.Tags,
+			&repository.BuildTool,
+			&repository.DepFilePath,
+			&repository.Active,
+			&repository.CreatedAt,
+			&repository.UpdatedAt,
+		)
+		if repository.Url == "" || repository.User == "" || repository.Token == "" {
+			errored[repository.Name] = "Invalid repo credentials"
+ 			// ErrorResponse(w, http.StatusInternalServerError, "Something went wrong", nil)
+			continue
+		}
+		fileObj, err := readDepFileContent(ctx, repository)
+		if err != nil {
+			errored[repository.Name] = err.Error()
+			continue
+		}
+		var updatedDeps string
+		if repository.BuildTool == "maven" {
+			updatedDeps, err = github.ModifyDeps(*fileObj.Content, reqBody[i].NewContent)
+			if err != nil {
+				errored[repository.Name] = err.Error()
+				continue
+			}
+			if updatedDeps == "" {
+				errored[repository.Name] = "Deps content is corrupted"
+				continue
+			}
+		}
+		_, err = github.PushChanges(ctx, repository, fileObj, reqBody[i].Message, updatedDeps)
+		if err != nil {
+			errored[repository.Name] = err.Error()
+			continue
+		}
+	}
+	if len(errored) > 0 {
+		ErrorResponse(w, http.StatusInternalServerError, "Error: All/Partial update failed", errored)
+		return
+	} else {
+		Response(w, http.StatusOK, "Repo versions updated!!!", len(reqBody))
 	}
 }

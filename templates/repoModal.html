@@ -1,6 +1,6 @@
 {{define "repoModal"}}
     <div class="modal fade" id="repoModal" tabindex="-1" role="dialog" aria-labelledby="repoModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document" style="max-width: 60%;">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <p class="modal-title" id="repoModalLabel"><b>Add New Repository</b></p>
@@ -47,16 +47,16 @@
                                     <select class="form-control" name="buildTool" id="buildTool">
                                         <option value="">-- Build Tool --</option>
                                         <option value="maven">Maven</option>
-                                        <option value="gradle">Gradle</option>
+                                        <!-- <option value="gradle">Gradle</option>
                                         <option value="pip">PIP</option>
                                         <option value="npm">NPM</option>
                                         <option value="yarn">Yarn</option>
-                                        <option value="cmake">CMake</option>
+                                        <option value="cmake">CMake</option> -->
                                     </select>
                                 </div>
                                 <div class="col-md-6 col-sm-6">
-                                    <label>Dep File Name*</label>
-                                    <input type="text" class="form-control" name="depFileName" id="depFileName" />
+                                    <label>Dep FilePath*</label>
+                                    <input type="text" class="form-control" name="depFilePath" id="depFilePath" />
                                 </div>
                             </div>
                         </div>

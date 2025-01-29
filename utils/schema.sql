@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS repositories_tbl (
     url TEXT NOT NULL,
     branch TEXT NOT NULL,
     buildTool TEXT NOT NULL,
-    depFileName TEXT NOT NULL,
+    depFilePath TEXT NOT NULL,
     tags TEXT,
     user TEXT NOT NULL,
     token TEXT NOT NULL,

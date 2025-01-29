@@ -11,6 +11,7 @@ import (
 type GhraFile struct {
     RepoContent *github.RepositoryContent
     Content *string
+    Branch  string
     SHA     string
 }
 
@@ -24,7 +25,7 @@ func ReadDepFile(ctx context.Context, repo models.Repository) (*github.Repositor
 		ctx, 
 		repo.User, 
 		repoName, 
-		repo.DepFileName, 
+		repo.DepFilePath, 
 		&github.RepositoryContentGetOptions{Ref: repo.Branch})
     if err != nil {
         return nil, err
@@ -38,21 +39,22 @@ func ReadDepFile(ctx context.Context, repo models.Repository) (*github.Repositor
     }
 }
 
-func PushChanges(ctx context.Context, repo models.Repository, data models.CommitReq, updatedDeps string) (bool, error) {
+func PushChanges(ctx context.Context, repo models.Repository, fileObj *GhraFile, msg string, updatedDeps string) (bool, error) {
     ts := oauth2.StaticTokenSource(
         &oauth2.Token{AccessToken: repo.Token},
     )
     client := github.NewClient(oauth2.NewClient(ctx, ts))
     
     repoName := GetRepoName(repo.Url)
-
+    depFilePath := GetDepFilePath(repo.DepFilePath)
     options := &github.RepositoryContentFileOptions{
-		Message: github.String(data.Message),
+		Message: github.String(msg),
 		Content: []byte(updatedDeps),
-		SHA:     &data.SHA,
-		Branch:  github.String(data.Branch),
+		SHA:     &fileObj.SHA,
+		Branch:  github.String(fileObj.Branch),
 	}
-    _, _, err := client.Repositories.UpdateFile(ctx, repo.User, repoName, repo.DepFileName, options)
+
+    _, _, err := client.Repositories.UpdateFile(ctx, repo.User, repoName, depFilePath, options)
 	if err != nil {
 		return false, err
 	}

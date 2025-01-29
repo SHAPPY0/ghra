@@ -18,6 +18,9 @@
                     </div>
                 </div>
             {{end}}
+            {{ $length := len .projects }} {{ if eq $length 0 }}
+                <p class="noDataLabel">No Projects</p>
+            {{ end }}
         </div>
         {{template "projectModal" .}}
     </main>

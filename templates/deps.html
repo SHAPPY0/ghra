@@ -4,7 +4,7 @@
         <div style="display: flex; justify-content: space-between;">
             <div>
                 <h5><b>{{.Name}}</b></h5>
-                <p>Dependencies</p>
+                <p>Dependencies: {{.DepFilePath}}</p>
                
             </div>
             <div>
@@ -26,9 +26,6 @@
                 </div>
                 <b>Dependencies</b>
                 <div id="content">
-                    <!-- {{range $ln, $value := .LinedContent}}
-                        <pre>{{$value}}</pre>
-                    {{end}} -->
                     {{range $ln, $value := .Dependencies}}
                         <div class="card">
                             <pre style="font-size: 14px;">{{$value.GroupID}}</pre>
@@ -41,8 +38,8 @@
                 </div>
             </div>
             <div class="col-md-3 col-sm-3">
-                <form id="commitForm" class="card">
-                    <div class="form-group">
+                <form id="commitForm">
+                    <div class="form-group" style="margin-bottom: 0px;">
                         <input type="hidden" value="{{.RepoId}}" id="repoId"/>
                         <input type="hidden" value="{{.ProjectId}}" id="projectId"/>
                         <input type="hidden" value="{{.Branch}}" id="branch"/>
