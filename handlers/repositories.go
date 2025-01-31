@@ -287,6 +287,7 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		for k, v := range repoDeps[0].Properties.Entries {
 			isCommon := true
 			for _, repoDep := range repoDeps[1:] {
+				log.Println(repoDep)
 				props := repoDep.Properties.Entries
 				if vv, exists := props[k]; !exists || vv != v {
 					isCommon = false
@@ -294,6 +295,7 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 				}
 			}
 			if isCommon {
+				log.Println("==== "+ k)
 				commonProps[k] = v
 			}
 		}
@@ -316,6 +318,7 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 				commonDeps = append(commonDeps, repoDep)
 			}
 		}
+		log.Println(commonProps)
 		data := map[string]interface{} {
 			"ProjectId": reqBody.ProjectId,
 			"RepoIds": reqBody.RepoIds,
@@ -323,7 +326,6 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			"Dependencies": commonDeps,
 		}
 		Response(w, http.StatusOK, "", data)
-		// RenderTemplate(w, "deps", data)
 	} else {
 		log.Println("Error: No repositories selected to update")
 		ErrorResponse(w, http.StatusInternalServerError, "No repositories selected to update", nil)

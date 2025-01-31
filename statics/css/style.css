@@ -10,8 +10,18 @@ body {
 }
 
 header {
-    background-color: var(--solid-color);
-    color: var(--while-color);
+    /* background-color: var(--solid-color); */
+    color: var(--solid-color);
+}
+
+.logo {
+    padding: 10px 0px; 
+    font-size: 18px;
+}
+
+.logo a {
+    color: var(--solid-color);
+    text-decoration: none;
 }
 
 footer {
@@ -38,7 +48,7 @@ p, h5, h4, h3, h2, h1, pre {
 }
 
 .navbar-nav .nav-item a {
-    color: var(--while-color);
+    color: var(--solid-color);
 }
 
 .pull-right {

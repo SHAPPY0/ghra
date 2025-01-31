@@ -116,25 +116,28 @@ function bindVCDeps(result) {
     let propertiesDom = document.getElementById("properties");
     let dependencies = document.getElementById("dependencies");
     let { Properties, Dependencies } = result.data;
+    let propList = "";
     for (let prop in Properties) {
-        let li = `<li>
+        propList += `<li>
                     <pre><span id="${prop}">${prop}:</span>
                     <input type="text" value="${Properties[prop]}" onchange="deps.onVersionChange('property', this.value, {'name': '${prop}'})" /></pre>
                 </li>`;
-        propertiesDom.innerHTML = li;
+        console.log("....", propertiesDom.innerHTML)
     }
+    propertiesDom.innerHTML = propList;
 
+    let depsList = "";
     for (let i = 0; i < Dependencies.length; i++) {
         let dep = Dependencies[i];
-        let depDiv = `<div class="card">
+        depsList += `<div class="card">
                             <pre style="font-size: 14px;">${dep.GroupID}</pre>
                             <pre class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;${dep.ArtifactID}</pre>
                             <p class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 <input type="text" value="${dep.Version}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '${dep.GroupID}', 'artifactId': '${dep.ArtifactID}'})" />
                             </p>
                         </div>`;
-        dependencies.innerHTML = depDiv;
     }
+    dependencies.innerHTML = depsList;
     form.projectId.value = result.data.ProjectId;
     form.repoIds.value = result.data.RepoIds;
 }
@@ -179,7 +182,6 @@ dependency.prototype.vcPushChanges = async function() {
             "message": "form.commitMessage.value"
         });
     }
-    console.log(">:<", data);
     // if (!data.message) {
     //     cm_err.style.display = "block";
     //     return;
