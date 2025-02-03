@@ -21,23 +21,25 @@
                         <div class="tab-pane fade show active" id="ChooseRepos" role="tabpanel" aria-labelledby="ChooseRepos-tab">
                             <br />
                             <div style="display: flex;">
-                                <input type="checkbox" name="repos" onchange="deps.chooseAllRepos()" />
+                                <input type="checkbox" id="chooseAllRepos" onchange="deps.chooseAllRepos()" />
                                 <span style="padding-left:10px;">
-                                    <b>Choose All</b>
+                                    <b>CHOOSE ALL</b>
                                 </span>
                             </div>
                             <hr />
-                            <ul style="padding-left: 0px; height: 250px; overflow-y: auto;">
-                            {{range .repositories}}
-                                <li style="display: flex; margin-bottom:10px;">
-                                    <input type="checkbox" name="{{.Name}}" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
-                                    <div style="padding-left:10px;" for="{{.Name}}">
-                                        <b>{{.Name}}</b>
-                                        <p>{{.Url}}</p>
-                                    </div>
-                                </li>
-                            {{end}}
-                            </ul>
+                            <form name="repoListForm">
+                                <ul style="padding-left: 0px; height: 250px; overflow-y: auto;">
+                                {{range .repositories}}
+                                    <li style="display: flex; margin-bottom:10px;">
+                                        <input type="checkbox" name="repositories" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
+                                        <div style="padding-left:10px;" for="{{.Name}}">
+                                            <b>{{.Name}}</b>
+                                            <p>{{.Url}}</p>
+                                        </div>
+                                    </li>
+                                {{end}}
+                                </ul>
+                            </form>
                         </div>
                         <div class="tab-pane fade" id="UpdateVersions" role="tabpanel" aria-labelledby="UpdateVersions-tab">
                             <form name="vcDepsForm">
@@ -57,8 +59,10 @@
                     <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="vcCancel">Cancel</button>
                     <button type="button" class="btn btn-sm btn-secondary" data-toggle="tab" href="#chooseRepos" style="display: none;" onclick="deps.vcBack()" id="vcBack">Back</button>
                     <button type="button" class="btn btn-sm btn-primary" onclick="deps.getVCDeps()" id="vcNext">Next</button>
-                    
-                    <button type="button" class="btn btn-sm btn-primary" onclick="deps.vcPushChanges()" style="display: none;" id="vcPushChanges">Push Changes</button>
+                    <div style="display: none;" id="vcPushChanges">
+                        <input type="text" placeholder="Commit Message ..." id="message" />
+                        <button type="button" class="btn btn-sm btn-primary" onclick="deps.vcPushChanges()">Push Changes</button>
+                    </div>
                 </div>
             </div>
         </div>

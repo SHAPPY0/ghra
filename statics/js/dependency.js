@@ -43,7 +43,7 @@ dependency.prototype.updateChanges = async function() {
         return;
     }
     cm_err.style.display = "none";
-    const rawResponse = await fetch("http://0.0.0.0:8080/deps", {
+    const rawResponse = await fetch("/deps", {
         method: "PUT",
         headers: {
             'Accept': 'application/json, text/plain, */*',
@@ -67,7 +67,23 @@ dependency.prototype.onRepoSelect = function(repoId) {
 }
 
 dependency.prototype.chooseAllRepos = function() {
-    // let 
+    let chooseAll = document.getElementById("chooseAllRepos");
+    let form = document.forms["repoListForm"];
+    if (chooseAll.checked) {
+        form.repositories.forEach(repo => {
+            let repoId = parseInt(repo.value);
+            if (this.versionCascade.repositories.indexOf(repoId) == -1) {
+                this.versionCascade.repositories.push(parseInt(repo.value));
+                repo.checked = true;
+            }
+        });
+    } else {
+        this.versionCascade.repositories = [];
+        form.repositories.forEach(repo => {
+            repo.checked = false;
+        })
+    }
+    console.log(this.versionCascade.repositories);
 }
 
 dependency.prototype.vcBack = function() {
@@ -89,7 +105,7 @@ dependency.prototype.getVCDeps = async function() {
         if (!data.repoIds.length) {
             return;
         }
-        const rawResponse = await fetch("http://0.0.0.0:8080/vc/deps", {
+        const rawResponse = await fetch("/vc/deps", {
             method: "POST",
             headers: {
                 'Accept': 'application/json, text/plain, */*',
@@ -122,9 +138,9 @@ function bindVCDeps(result) {
                     <pre><span id="${prop}">${prop}:</span>
                     <input type="text" value="${Properties[prop]}" onchange="deps.onVersionChange('property', this.value, {'name': '${prop}'})" /></pre>
                 </li>`;
-        console.log("....", propertiesDom.innerHTML)
     }
-    propertiesDom.innerHTML = propList;
+    if (propList) propertiesDom.innerHTML = propList;
+    else propertiesDom.innerHTML = `<div>No common properties found</div>`;
 
     let depsList = "";
     for (let i = 0; i < Dependencies.length; i++) {
@@ -137,7 +153,9 @@ function bindVCDeps(result) {
                             </p>
                         </div>`;
     }
-    dependencies.innerHTML = depsList;
+    if (depsList) dependencies.innerHTML = depsList;
+    else dependencies.innerHTML = `<div>No common dependencies found</div>`;
+
     form.projectId.value = result.data.ProjectId;
     form.repoIds.value = result.data.RepoIds;
 }
@@ -171,23 +189,24 @@ function openTab(tabNo) {
 
 dependency.prototype.vcPushChanges = async function() {
     let form = document.forms["vcDepsForm"];
+    let commitMsg = document.getElementById("message").value;
     let repoIds = [];
-    form.repoIds.value.split(",").forEach(id => repoIds.push(parseInt(id)));
     let data = [];
+    form.repoIds.value.split(",").forEach(id => repoIds.push(parseInt(id)));
+    if (!commitMsg) {
+        alert("Please enter commit message")
+        return;
+    }
+
     for (let i = 0; i < repoIds.length; i++) {
         data.push({
             "newContent": {"properties": this.properties, "dependencies": this.dependencies},
             "projectId": parseInt(form.projectId.value),
             "repoId": repoIds[i],
-            "message": "form.commitMessage.value"
+            "message": commitMsg
         });
     }
-    // if (!data.message) {
-    //     cm_err.style.display = "block";
-    //     return;
-    // }
-    // cm_err.style.display = "none";
-    const rawResponse = await fetch("http://0.0.0.0:8080/vc/deps", {
+    const rawResponse = await fetch("/vc/deps", {
         method: "PUT",
         headers: {
             'Accept': 'application/json, text/plain, */*',

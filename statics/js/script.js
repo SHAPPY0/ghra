@@ -1,14 +1,16 @@
 const UTILS = {};
+
 function showAlert(type, msg) {
-    let modal = new bootstrap.Modal(document.getElementById("alertModal"));
+    let modalElm = document.getElementById("alertModal");
+    let modal = new bootstrap.Modal(modalElm);
     if (modal) modal.show();
-    let alertModal = document.getElementById("alertModal");
+    // let alertModal = document.getElementById("alertModal");
     let alertType = document.getElementById("alertType");
     let alertMsg = document.getElementById("alertMsg");
-    if (alertModal) {
+    if (modalElm) {
         alertType.innerHTML = type;
         alertMsg.innerHTML = msg;
-        alertModal.style.display = "block";
+        modalElm.style.display = "block";
     }
 }
 
@@ -41,7 +43,7 @@ async function onSignup() {
         "password": form.password.value,
         "role": 0,
     }
-    const rawResponse = await fetch("http://0.0.0.0:8080/signup", {
+    const rawResponse = await fetch("/signup", {
         method: "POST",
         headers: {
             'Accept': 'application/json, text/plain, */*',
@@ -62,7 +64,7 @@ async function createProject() {
         "name": form.name.value,
         "description": form.description.value,
     }
-    const rawResponse = await fetch("http://0.0.0.0:8080/projects", {
+    const rawResponse = await fetch("/projects", {
         method: "POST",
         headers: {
             'Accept': 'application/json, text/plain, */*',
@@ -73,6 +75,7 @@ async function createProject() {
     let result = await rawResponse.json();
     if (result && result.status == 200){
         closeModal("projectModal");
+        // window.location = "/projects";
         showAlert("Success", result.message);
     } else showAlert("Error", result.message);
 }
@@ -90,7 +93,7 @@ async function addRepository() {
         "depFilePath": form.depFilePath.value,
         "tags": form.tags.value,
     }
-    const rawResponse = await fetch("http://0.0.0.0:8080/repository", {
+    const rawResponse = await fetch("/repository", {
         method: "POST",
         headers: {
             'Accept': 'application/json, text/plain, */*',
@@ -104,7 +107,6 @@ async function addRepository() {
         showAlert("Success", result.message);
     } else showAlert("Error", result.message);
 }
-
 
 async function commitChanges(e) {
     let form = document.forms["commitForm"];
@@ -123,13 +125,34 @@ async function commitChanges(e) {
         return;
     }
     cm_err.style.display = "none";
-    const rawResponse = await fetch("http://0.0.0.0:8080/deps", {
+    const rawResponse = await fetch("/deps", {
         method: "PUT",
         headers: {
             'Accept': 'application/json, text/plain, */*',
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
+    });
+    let result = await rawResponse.json();
+    if (result && result.status == 200){
+        showAlert("Success", result.message);
+    } else showAlert("Error", result.message);
+}
+
+async function editProject(id) {
+    alert(id);
+}
+
+async function deleteProject(id) {
+    if (!id) return;
+    let confm = confirm("Are you sure to delete project?");
+    if (!confm) return;
+    const rawResponse = await fetch(`/project/${id}`, {
+        method: "DELETE",
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+        }
     });
     let result = await rawResponse.json();
     if (result && result.status == 200){

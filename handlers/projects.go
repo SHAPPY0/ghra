@@ -22,11 +22,24 @@ func ProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ProjectHandler(w http.ResponseWriter, r *http.Request) { 
+	var db *sql.DB
+	if db = (r.Context().Value("db")).(*sql.DB); db == nil {
+		RenderErrorTemplate(w, http.StatusInternalServerError, "Invalid DB Connection")
+		return
+	}
+	if r.Method == http.MethodGet {
+		getProject(w, r, db)
+	} else if r.Method == http.MethodDelete {
+		deleteProject(w, r, db)
+	}
+}
+
 func getProjectList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	projects := make([]interface{}, 0)
 	rows, err := db.Query(`SELECT * FROM projects_tbl`)
 	if err != nil {
-		log.Printf("err" + err.Error())
+		RenderErrorTemplate(w, 500, err.Error())
 		return
 	}
 	for rows.Next() {
@@ -83,17 +96,6 @@ func createProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	
 }
 
-func ProjectHandler(w http.ResponseWriter, r *http.Request) { 
-	var db *sql.DB
-	if db = (r.Context().Value("db")).(*sql.DB); db == nil {
-		RenderErrorTemplate(w, http.StatusInternalServerError, "Invalid DB Connection")
-		return
-	}
-	if r.Method == http.MethodGet {
-		getProject(w, r, db)
-	}
-}
-
 func getProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var project models.Project
 	projectId := r.PathValue("id") 
@@ -117,4 +119,14 @@ func getProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		"repositories": repos,
 	}
 	RenderTemplate(w, "project", data)
+}
+
+func deleteProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	projectId := r.PathValue("id") 
+	if projectId == "" {
+		RenderErrorTemplate(w, http.StatusBadRequest, "Invalid ProjectId")
+		return
+	}
+	db.Exec(`DELETE FROM projects_tbl WHERE id = ?`, projectId)
+	Response(w, 200, "Project deleted successfully", nil)
 }

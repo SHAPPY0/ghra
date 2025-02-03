@@ -36,7 +36,10 @@ func RepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func getRepositoryList(w http.ResponseWriter, r *http.Request, db *sql.DB, projectId int) ([]models.Repository, error) {
 	repositories := make([]models.Repository, 0)
-	query := `SELECT id, projectId, name, url, branch, buildTool, depFilePath, user, token, tags, active, createdAt, updatedAt FROM repositories_tbl where projectId = ?`
+	query := `SELECT id, projectId, name, url, branch, buildTool, depFilePath, user, token, tags, active, createdAt, updatedAt 
+				FROM repositories_tbl 
+				WHERE projectId = ?
+				ORDER BY createdAt desc`
 	rows, err := db.Query(query, projectId)
 	if err != nil {
 		return repositories, err
@@ -150,10 +153,6 @@ func getDependencies(db *sql.DB, repoId, projectId int) (*models.RepoDeps, error
 		Dependencies: 	parsedContent.Dependencies,
 		Properties: 	parsedContent.Properties,
 	}
-	// contentSeg := strings.Split(repoDeps.Content, "\n")
-	// for i := 0; i < len(contentSeg); i++ {
-	// 	repoDeps.LinedContent[i] = contentSeg[i]
-	// }
 	return &repoDeps, nil 
 }
 
@@ -287,18 +286,17 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		for k, v := range repoDeps[0].Properties.Entries {
 			isCommon := true
 			for _, repoDep := range repoDeps[1:] {
-				log.Println(repoDep)
 				props := repoDep.Properties.Entries
-				if vv, exists := props[k]; !exists || vv != v {
+				if _, exists := props[k]; !exists {
 					isCommon = false
 					break
 				}
 			}
 			if isCommon {
-				log.Println("==== "+ k)
 				commonProps[k] = v
 			}
 		}
+
 		//filter common dependencies
 		for _, repoDep := range *repoDeps[0].Dependencies {
 			isCommon := true
@@ -318,7 +316,7 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 				commonDeps = append(commonDeps, repoDep)
 			}
 		}
-		log.Println(commonProps)
+
 		data := map[string]interface{} {
 			"ProjectId": reqBody.ProjectId,
 			"RepoIds": reqBody.RepoIds,

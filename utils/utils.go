@@ -2,6 +2,7 @@ package utils
 
 import (
 	"io"
+	"time"
 	"io/ioutil"
 	"encoding/json"
 )
@@ -18,10 +19,11 @@ func GetBody(data io.ReadCloser, v any) error {
 	return nil
 }
 
-// func StrToInt(val string) int {
-// 	v, err := strconv.Atoi(val)
-// 	if err != nil {
-// 		return 0
-// 	}
-// 	return v
-// }
+func FormateDate(format string, dateTime interface{})  string {
+	dtStr := dateTime.(string)
+	dt, err := time.Parse(time.RFC3339, dtStr)
+	if err != nil {
+		return dtStr
+	}
+	return dt.Format(format)
+}

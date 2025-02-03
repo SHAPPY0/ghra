@@ -16,7 +16,8 @@ import (
 var db *sql.DB
 
 func setupHandlers(mux *http.ServeMux) {
-	mux.HandleFunc("/", handlers.RootHandler)
+	// mux.HandleFunc("/", handlers.RootHandler)
+	mux.HandleFunc("/", handlers.ProjectsHandler)
 	mux.HandleFunc("/signup", handlers.SignupHandler)
 	mux.HandleFunc("/projects", handlers.ProjectsHandler)
 	mux.HandleFunc("/project/{id}", handlers.ProjectHandler)
@@ -77,8 +78,9 @@ func main() {
 		Addr: addr,
 		Handler: enableCORS(dbMiddleware(mux)),
 	}
-	log.Printf("Webserver starting on http://0.0.0.0" + addr)
-	// go openWeb("http://localhost" + addr)
+	url := "http://localhost" + addr
+	log.Printf("Webserver starting on " + url + " and opening it in browser.")
+	go openWeb(url)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Error: " + err.Error())
 	} 

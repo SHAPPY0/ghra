@@ -3,20 +3,27 @@
     --while-color: #fff; 
     --gray-color: #adafb0;
     --light-gray-color: #cfd3d5;
+    --body-color: #ebebeb;
 }
 
 body {
-    font-size: 14px;
+    font-size: 13px;
+    background-color: var(--body-color);
 }
 
 header {
-    /* background-color: var(--solid-color); */
+    background-color: var(--while-color);
     color: var(--solid-color);
+    border-bottom: 1px dotted #ccc;
+}
+
+input[type="text"], select {
+    font-size: 13px;
 }
 
 .logo {
     padding: 10px 0px; 
-    font-size: 18px;
+    font-size: 15px;
 }
 
 .logo a {
@@ -49,6 +56,7 @@ p, h5, h4, h3, h2, h1, pre {
 
 .navbar-nav .nav-item a {
     color: var(--solid-color);
+    padding: 10px 0px;
 }
 
 .pull-right {
@@ -64,6 +72,10 @@ p, h5, h4, h3, h2, h1, pre {
     font-size: 1.2rem;
 }
 
+.btn {
+    font-size: 12px !important;
+}
+
 .btn-primary {
     background-color: var(--solid-color);
     border-color: var(--solid-color);
@@ -75,8 +87,28 @@ p, h5, h4, h3, h2, h1, pre {
     color: var(--solid-color);
 }
 
+.displayJCSB {
+    display: flex;
+    justify-content: space-between;
+}
+
 .project_list .card {
     padding: 10px;
+}
+
+.project_actions {
+    border-top: 1px dotted #ccc;
+    margin-top: 10px;
+    padding-top: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.project_actions i {
+    margin-right: 5px;
+    color: var(--gray-color);
+    font-size: 13px;
+    cursor: pointer;
 }
 
 .card_anchor {
@@ -86,6 +118,27 @@ p, h5, h4, h3, h2, h1, pre {
 .card_anchor:hover {
     text-decoration: none;
     color: var(--solid-color);
+}
+
+.right_nav  {
+    display: block;
+    padding: 0px;
+}
+
+.right_nav .nav {
+    display: block;
+}
+
+.right_nav a {
+    padding: 5px 0px;
+    border-bottom: 1px dotted var(--gray-color);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.right_nav a:hover {
+    background-color: var(--solid-color);
+    color: var(--while-color) !important;
 }
 
 .repo_list p b {

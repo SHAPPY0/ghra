@@ -8,22 +8,23 @@
                 <input type="hidden" id="projectId" value="{{.project.Id}}" />
             </div>
             <div>
-                <button class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#repoModal"><i class="fa fa-add"></i> Add New Repository</button>
-                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button>
+                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#repoModal"><i class="fa fa-add"></i> Add New Repository</button>
+                <!-- <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button> -->
             </div>
         </div>
         <hr />
         <div class="row">
-            <div class="col-md-8 col-sm-8 search">
+            <div class="col-md-9 col-sm-9 search">
                 <i class="fa fa-search"></i>
                 <input type="text" placeholder="Search Repository ... " class="form-control" />
             </div>
-            <div class="col-md-4 col-sm-4" style="text-align: right;">
+            <div class="col-md-3 col-sm-3" style="text-align: right;">
+                
                 <!-- <button class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button> -->
             </div>
         </div>
         <div class="row">
-            <div class="col-md-8 col-sm-8">
+            <div class="col-md-9 col-sm-9">
                 {{range .repositories}}
                     <div class="card repo_list">
                         <a class="card_anchor" href="/repository/{{.Id}}/deps?projectId={{.ProjectId}}">
@@ -41,7 +42,15 @@
                     <p class="noDataLabel">No Repositories</p>
                 {{ end }}
             </div>
-            <div class="col-md-4 col-sm-4"></div>
+            <div class="col-md-3 col-sm-3">
+                <b>Repository Cascade</b>
+                <div class="card right_nav">
+                    <ul class="nav">
+                        <li><a data-toggle="modal" data-target="">Add New Dependencies</a></li>
+                        <li><a data-toggle="modal" data-target="#versionCascadeModal">Update Versions</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
         {{template "repoModal" .}}
         {{template "versionCascadeModal" .}}

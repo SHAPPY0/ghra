@@ -25,26 +25,27 @@ func ModifyDeps(content string, newDeps map[string]interface{}) (string, error) 
 	properties := newDeps["properties"].(map[string]interface{})
 	dependencies := newDeps["dependencies"].([]interface{})
 
-	parsedContent, err := Parse(content)
+	parsedPom, err := Parse(content)
 	if err != nil {
 		return "", err
 	}
 	//modify properties
 	for k, v := range properties {
-		props := *parsedContent.Properties
+		props := *parsedPom.Properties
 		props.Entries[k] = v.(string)
 	}
 	//modify Dependencies
 	for _, dep := range dependencies {
 		newDep := dep.(map[string]interface{})
-		for _, dep := range *parsedContent.Dependencies {
-			if *dep.GroupID == newDep["groupId"] && *dep.ArtifactID == newDep["artifactId"] {
-				*dep.Version = newDep["version"].(string)
-			}
+		for i := range *parsedPom.Dependencies {
+			if *(*parsedPom.Dependencies)[i].GroupID == newDep["groupId"] && *(*parsedPom.Dependencies)[i].ArtifactID == newDep["artifactId"] {
+				newVersion := newDep["version"].(string)
+				(*parsedPom.Dependencies)[i].Version = &newVersion
+			} 
 		}
 	}
 	//Prepare new deps content
-	output, err := xml.MarshalIndent(parsedContent, "", "  ")
+	output, err := xml.MarshalIndent(parsedPom, "", "  ")
 	if err != nil {
 		log.Printf("Error marshaling POM to XML: %v\n", err)
 		return "", nil

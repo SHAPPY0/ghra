@@ -20,7 +20,14 @@ type SignupReq struct {
 
 func InitTemplate(mux *http.ServeMux) {
 	var err error
-	tmpl, err = template.ParseGlob("templates/*.html")
+	tmm := template.FuncMap{
+		"FormatDate": utils.FormateDate,
+	}
+	tmpl, err = template.New("").Funcs(tmm).ParseGlob("templates/*.html")
+
+	// tmpl.Funcs(template.FuncMap{
+	// 	"FormateDate": utils.FormateDate,
+	// })
 	if  err != nil {
 		log.Fatal( err)
 	}

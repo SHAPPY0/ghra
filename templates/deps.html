@@ -7,32 +7,34 @@
                 <p>Dependencies: {{.DepFilePath}}</p>
                
             </div>
-            <div>
-                <!-- <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#repoModal">+ Add New Repository</button> -->
-            </div>
         </div>
         <hr />
         <div class="row">
             <div class="col-md-9 col-sm-9">
                 <div>
-                    <b>Properties</b>
-                    <ul id="properties">
-                        {{range $key, $value := .Properties.Entries}}
-                            <li>
-                                <pre><span id="{{$key}}">{{$key}}:</span>
-                                <input type="text" value="{{$value}}" onchange="deps.onVersionChange('property', this.value, {'name': '{{$key}}'})" /></pre></li>
-                        {{end}}
-                    </ul>
+                    <div class="displayJCSB"><b>Properties</b> <span>Add Property</span></div>
+                    
+                    <div class="card">
+                        <ul id="properties">
+                            {{range $key, $value := .Properties.Entries}}
+                                <li>
+                                    <pre id="{{$key}}">{{$key}}:&nbsp;<input type="text" value="{{$value}}" onchange="deps.onVersionChange('property', this.value, {'name': '{{$key}}'})" /></pre>
+                                </li>
+                            {{end}}
+                        </ul>
+                    </div>
                 </div>
-                <b>Dependencies</b>
+                <div class="displayJCSB"><b>Dependencies</b> <span>Add Dependency</span></div>
+                
                 <div id="content">
                     {{range $ln, $value := .Dependencies}}
                         <div class="card">
-                            <pre style="font-size: 14px;">{{$value.GroupID}}</pre>
-                            <pre class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;{{$value.ArtifactID}}</pre>
-                            <p class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                <input type="text" value="{{$value.Version}}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '{{$value.GroupID}}', 'artifactId': '{{$value.ArtifactID}}'} , this.value)" />
-                            </p>
+                            <pre><b>GroupID:</b> {{$value.GroupID}}</pre>
+                            <pre><b>ArtifactID:</b> {{$value.ArtifactID}}</pre>
+                            <pre><b>Version:</b> {{ if eq $value.Version nil }} <input type="text" value="" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '{{$value.GroupID}}', 'artifactId': '{{$value.ArtifactID}}'} , this.value)" /> 
+                                {{ else }} <input type="text" value="{{$value.Version}}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '{{$value.GroupID}}', 'artifactId': '{{$value.ArtifactID}}'} , this.value)" /> 
+                                {{ end }}
+                            </pre>
                         </div>
                     {{end}}
                 </div>
