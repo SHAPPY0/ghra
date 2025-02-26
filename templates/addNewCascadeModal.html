@@ -1,9 +1,9 @@
-{{define "versionCascadeModal"}}
-    <div class="modal fade" id="versionCascadeModal" tabindex="-1" role="dialog" aria-labelledby="versionCascadeModalLabel" aria-hidden="true">
+{{define "addNewCascadeModal"}}
+    <div class="modal fade" id="addNewCascadeModal" tabindex="-1" role="dialog" aria-labelledby="addNewCascadeModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document" style="max-width: 60%;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <p class="modal-title" id="versionCascadeModalLabel"><b>VERSION CASCADE</b></p>
+                    <p class="modal-title" id="addNewCascadeModalLabel"><b>VERSION CASCADE</b></p>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -18,7 +18,7 @@
                         </li>
                       </ul>
                       <div class="tab-content" id="myTabContent">
-                        <div class="tab-pane fade show active" id="ChooseRepos" role="tabpanel" aria-labelledby="ChooseRepos-tab">
+                        <div class="tab-pane fade show active" id="ChooseRepos1" role="tabpanel" aria-labelledby="ChooseRepos-tab">
                             <br />
                             <div style="display: flex;">
                                 <input type="checkbox" id="chooseAllRepos" onchange="deps.chooseAllRepos()" />
@@ -27,8 +27,8 @@
                                 </span>
                             </div>
                             <hr />
-                            <form name="repoListForm">
-                                <ul style="padding-left: 0px; height: 250px; overflow-y: auto;">
+                            <form name="repoListForm1">
+                                <ul style="padding-left: 0px; min-height: 250px; height: 250px; overflow-y: auto;">
                                 {{range .repositories}}
                                     <li style="display: flex; margin-bottom:10px;">
                                         <input type="checkbox" name="repositories" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
@@ -41,17 +41,17 @@
                                 </ul>
                             </form>
                         </div>
-                        <div class="tab-pane fade" id="UpdateVersions" role="tabpanel" aria-labelledby="UpdateVersions-tab">
-                            <form name="vcDepsForm">
+                        <div class="tab-pane fade" id="UpdateVersions1" role="tabpanel" aria-labelledby="UpdateVersions-tab" style="height: 300px; min-height: 300px; overflow-y: auto;">
+                            <!-- <form name="vcDepsForm"1>
                                 <b>Properties</b>
-                                <ul id="properties"></ul>
+                                <ul id="properties1"></ul>
 
                                 <b>Dependencies</b>
-                                <div id="dependencies"></div>
+                                <div id="dependencies1"></div>
 
                                 <input type="hidden" id="projectId" value=""/>
                                 <input type="hidden" id="repoIds" value="" />
-                            </form>
+                            </form> -->
                         </div>
                       </div>
                 </div>

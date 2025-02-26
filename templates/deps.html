@@ -4,7 +4,7 @@
         <div style="display: flex; justify-content: space-between;">
             <div>
                 <h5><b>{{.Name}}</b></h5>
-                <p>Dependencies: {{.DepFilePath}}</p>
+                <p>Deps FilePath: {{.DepFilePath}}</p>
                
             </div>
         </div>
@@ -12,7 +12,12 @@
         <div class="row">
             <div class="col-md-9 col-sm-9">
                 <div>
-                    <div class="displayJCSB"><b>Properties</b> <span>Add Property</span></div>
+                    <div class="displayJCSB">
+                        <b>Properties</b> 
+                        <span class="anchor" onclick="deps.maven.addProperty()"> 
+                            <i class="fa fa-plus"></i> Add Property
+                        </span>
+                    </div>
                     
                     <div class="card">
                         <ul id="properties">
@@ -24,9 +29,15 @@
                         </ul>
                     </div>
                 </div>
-                <div class="displayJCSB"><b>Dependencies</b> <span>Add Dependency</span></div>
                 
-                <div id="content">
+                <div class="displayJCSB">
+                    <b>Dependencies</b> 
+                    <span class="anchor" onclick="deps.maven.addDependency()">
+                        <i class="fa fa-plus"></i> Add Dependency
+                    </span>
+                </div>
+                
+                <div id="deps">
                     {{range $ln, $value := .Dependencies}}
                         <div class="card">
                             <pre><b>GroupID:</b> {{$value.GroupID}}</pre>
@@ -47,7 +58,7 @@
                         <input type="hidden" value="{{.Branch}}" id="branch"/>
                         <input type="hidden" value="{{.SHA}}" id="sha"/>
                         <input type="text" class="form-control" name="commitMessage" id="commitMessage" placeholder="Commit Message ..."/>
-                        <span id="cm_err" style="color: red;display: none;">Commit message is required!</span>
+                        <span id="cm_err" style="color: red;display: none;">Commit message required!</span>
                         <br />
                     </div>
                 </form>

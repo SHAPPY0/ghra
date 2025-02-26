@@ -19,18 +19,37 @@ func RepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid DB connection", http.StatusInternalServerError)
 		return
 	}
-	if r.Method == http.MethodGet {
-		id := r.PathValue("id")
-		projectId := r.URL.Query().Get("projectId")
-		repoDeps, err := getDependencies(db, github.StrToInt(id), github.StrToInt(projectId))
-		if err != nil {
-			log.Println("Error: " + err.Error())
-			ErrorResponse(w, http.StatusInternalServerError, err.Error(), nil)
-			return
+	if utils.CheckRoute(r.URL.Path, `/project/\d+/repositories`) {
+		log.Println("Matched")
+	} else if utils.CheckRoute(r.URL.Path, `/repositories/cascade/(.+?)/deps`) {
+		if r.Method == http.MethodGet {
+			cascadeType := r.PathValue("type")
+			if cascadeType == "update" {
+				renderDepsCascadeUpdate(w, r, db)
+			} else if cascadeType == "add" {
+				renderDepsCascadeAdd(w, r, db)
+			}
 		}
-		RenderTemplate(w, "deps", *repoDeps)
-	} else if r.Method == http.MethodPost {
-		createRepository(w, r, db)
+	} else if utils.CheckRoute(r.URL.Path, `^/repository/\d+/\d+$`) {
+		if r.Method == http.MethodGet {
+			getRepository(w, r, db)	 
+		} else if r.Method == http.MethodDelete {
+			deleteRepository(w, r, db)
+		}
+	} else {
+		if r.Method == http.MethodGet {
+			id := r.PathValue("id")
+			projectId := r.URL.Query().Get("projectId")
+			repoDeps, err := getDependencies(db, github.StrToInt(id), github.StrToInt(projectId))
+			if err != nil {
+				log.Println("Error: " + err.Error())
+				ErrorResponse(w, http.StatusInternalServerError, err.Error(), nil)
+				return
+			}
+			RenderTemplate(w, "deps", *repoDeps)
+		} else if r.Method == http.MethodPost {
+			createRepository(w, r, db)
+		}
 	}
 }
 
@@ -234,7 +253,7 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	var updatedDeps string
 	if repository.BuildTool == "maven" {
-		updatedDeps, err = github.ModifyDeps(*fileObj.Content, reqBody.NewContent)
+		updatedDeps, err = github.ModifyDeps(*fileObj.Content, reqBody.Content)
 		if err != nil {
 			ErrorResponse(w, http.StatusInternalServerError, err.Error(), nil)
 			return
@@ -373,7 +392,7 @@ func pushVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		var updatedDeps string
 		if repository.BuildTool == "maven" {
-			updatedDeps, err = github.ModifyDeps(*fileObj.Content, reqBody[i].NewContent)
+			updatedDeps, err = github.ModifyDeps(*fileObj.Content, reqBody[i].Content)
 			if err != nil {
 				errored[repository.Name] = err.Error()
 				continue
@@ -395,4 +414,68 @@ func pushVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	} else {
 		Response(w, http.StatusOK, "Repo versions updated!!!", len(reqBody))
 	}
+}
+
+func getRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	projectId := r.PathValue("projectId")
+	repoId := r.PathValue("repoId")
+	if projectId == "" || repoId == "" {
+		ErrorResponse(w, http.StatusBadRequest, "RepoId/ProjectId required", nil)
+		return
+	}
+	var repository models.Repository
+	query := `SELECT id, projectId, name, url, branch, user, token, tags, buildTool, depFilePath, active, createdAt, updatedAt FROM repositories_tbl WHERE id = ? AND projectId = ?`;
+	db.QueryRow(query, repoId, projectId).Scan(&repository.Id,
+		&repository.ProjectId,
+		&repository.Name,
+		&repository.Url,
+		&repository.Branch,
+		&repository.User,
+		&repository.Token,
+		&repository.Tags,
+		&repository.BuildTool,
+		&repository.DepFilePath,
+		&repository.Active,
+		&repository.CreatedAt,
+		&repository.UpdatedAt,
+	)
+	Response(w, http.StatusOK, "", repository)
+}
+
+func deleteRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	projectId := r.PathValue("projectId")
+	repoId := r.PathValue("repoId")
+	if projectId == "" || repoId == "" {
+		ErrorResponse(w, http.StatusBadRequest, "RepoId/ProjectId required", nil)
+		return
+	}
+	db.Exec(`DELETE FROM repositories_tbl WHERE id = ? AND projectId = ?`, repoId, projectId)
+	Response(w, 200, "Repository deleted successfully", nil)
+}
+
+func renderDepsCascadeUpdate(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	projectId := r.URL.Query().Get("projectId")
+	if projectId == "" {
+		ErrorResponse(w, http.StatusInternalServerError, "Error: Invalid projectId", nil)
+		return
+	}
+	projId := utils.StrToInt(projectId)
+	var projectName string
+	query := `SELECT name FROM projects_tbl WHERE id = ?`
+	db.QueryRow(query, projectId).Scan(&projectName)
+	repoList, err := getRepositoryList(w, r, db, projId)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "Error: Err getting repo lists", nil)
+		return
+	}
+	data := map[string]interface{}{
+		"projectId": projectId,
+		"projectName": projectName,
+		"repositories": repoList,
+	}
+	RenderTemplate(w, "cascadingUpdate", data)
+}
+
+func renderDepsCascadeAdd(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+
 }

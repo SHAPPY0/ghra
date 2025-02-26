@@ -28,16 +28,23 @@ func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		RenderErrorTemplate(w, http.StatusInternalServerError, "Invalid DB Connection")
 		return
 	}
-	if r.Method == http.MethodGet {
-		getProject(w, r, db)
-	} else if r.Method == http.MethodDelete {
-		deleteProject(w, r, db)
+	if utils.CheckRoute(r.URL.Path, "/project/(.+?)/json") {
+		if r.Method == http.MethodGet {
+			getProjectJson(w, r, db)
+		}
+	} else {
+		if r.Method == http.MethodGet {
+			getProject(w, r, db)
+		} else if r.Method == http.MethodDelete {
+			deleteProject(w, r, db)
+		}
 	}
+	
 }
 
 func getProjectList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	projects := make([]interface{}, 0)
-	rows, err := db.Query(`SELECT * FROM projects_tbl`)
+	rows, err := db.Query(`SELECT * FROM projects_tbl ORDER BY createdAt desc;`)
 	if err != nil {
 		RenderErrorTemplate(w, 500, err.Error())
 		return
@@ -98,6 +105,9 @@ func createProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func getProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var project models.Project
+	var repos []models.Repository
+	var err error
+	includeRepo := r.URL.Query().Get("repos")
 	projectId := r.PathValue("id") 
 	if projectId == "" {
 		RenderErrorTemplate(w, http.StatusBadRequest, "Invalid ProjectId")
@@ -109,16 +119,52 @@ func getProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			&project.Active, 
 			&project.CreatedAt, 
 			&project.UpdatedAt)
-	repos, err := getRepositoryList(w, r, db, project.Id)
-	if err != nil {
-		RenderErrorTemplate(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+
 	data := map[string]interface{}{
 		"project": project,
-		"repositories": repos,
+		"projectId": projectId,
+	}
+	if includeRepo == "true" {
+		repos, err = getRepositoryList(w, r, db, project.Id)
+		if err != nil {
+			RenderErrorTemplate(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		data["repositories"] = repos
 	}
 	RenderTemplate(w, "project", data)
+}
+
+func getProjectJson(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	var project models.Project
+	var repos []models.Repository
+	var err error
+	includeRepo := r.URL.Query().Get("repos")
+	projectId := r.PathValue("id") 
+	if projectId == "" {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid ProjectId", nil)
+		return
+	}
+	db.QueryRow(`SELECT * FROM projects_tbl WHERE id = ?`, projectId).Scan(&project.Id, 
+			&project.Name, 
+			&project.Description, 
+			&project.Active, 
+			&project.CreatedAt, 
+			&project.UpdatedAt)
+
+	data := map[string]interface{}{
+		"project": project,
+		"projectId": projectId,
+	}
+	if includeRepo == "true" {
+		repos, err = getRepositoryList(w, r, db, project.Id)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, err.Error(), nil)
+			return
+		}
+		data["repositories"] = repos
+	}
+	Response(w, http.StatusOK, "", data)
 }
 
 func deleteProject(w http.ResponseWriter, r *http.Request, db *sql.DB) {

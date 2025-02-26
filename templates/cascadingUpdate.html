@@ -1,0 +1,193 @@
+{{define "cascadingUpdate"}}
+{{template "header" .}}
+<main class="container">
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+            <h5><b>{{.projectName}}</b></h5>
+            <p>Cascade Version Update</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+            <hr />
+
+            <div class="row">
+                <!-- left nav tabs -->
+                <div class="col-3">
+                  <div class="nav card flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a class="nav-link active" id="v-pills-cr-tab" data-toggle="pill" href="#v-pills-cr" role="tab" aria-controls="v-pills-home" aria-selected="true">Choose Repos</a>
+                    <a class="nav-link" id="v-pills-uv-tab" data-toggle="pill" href="#v-pills-uv" role="tab" aria-controls="v-pills-uv" aria-selected="false">Update Versions</a>
+                    <a class="nav-link" id="v-pills-pc-tab" data-toggle="pill" href="#v-pills-pc" role="tab" aria-controls="v-pills-pc" aria-selected="false">Push Changes</a>
+                  </div>
+                </div>
+
+                <!-- nav tab panels -->
+                <div class="col-9">
+                  <div class="tab-content" id="v-pills-tabContent">
+                    <div class="tab-pane fade show card active" id="v-pills-cr" role="tabpanel" aria-labelledby="v-pills-cr-tab">
+                        <div style="display: flex;">
+                            <input type="checkbox" id="chooseAllRepos" onchange="deps.chooseAllRepos()" />
+                            <span style="padding-left:10px;">
+                                <b>CHOOSE ALL</b>
+                            </span>
+                        </div>
+                        <hr />
+                        <form name="repoListForm">
+                            <ul style="padding-left: 0px; min-height: 350px; height: 350px; overflow-y: auto;">
+                            {{range .repositories}}
+                                <li style="display: flex; margin-bottom:10px;">
+                                    <input type="checkbox" name="repository" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
+                                    <div style="padding-left:10px;" for="{{.Name}}">
+                                        <b>{{.Name}}</b>
+                                        <p>{{.Url}}</p>
+                                    </div>
+                                </li>
+                            {{end}}
+                            </ul>
+                        </form>
+                        <div class="cascade_actions"><button class="btn btn-primary">Back</button><button class="btn btn-primary" onclick="deps.goToTab('v-pills-uv-tab')">Next</button></div>
+                    </div>
+                    <div class="tab-pane fade card" id="v-pills-uv" role="tabpanel" aria-labelledby="v-pills-uv-tab">
+                        <form name="vcDepsForm">
+                            <div class="displayJCSB">
+                                <b>Properties</b> 
+                                <span class="anchor" onclick="deps.maven.addProperty()"> 
+                                    <i class="fa fa-plus"></i> Add Property
+                                </span>
+                            </div>
+                            
+                            <div class="card">
+                                <ul id="properties"></ul>
+                            </div>
+                            <div class="displayJCSB">
+                                <b>Dependencies</b> 
+                                <span class="anchor" onclick="deps.maven.addDependency()">
+                                    <i class="fa fa-plus"></i> Add Dependency
+                                </span>
+                            </div>
+                            <div id="dependencies"></div>
+                            
+                            <!-- <div id="deps">
+                                {{range $ln, $value := .Dependencies}}
+                                    <div class="card">
+                                        <pre><b>GroupID:</b> {{$value.GroupID}}</pre>
+                                        <pre><b>ArtifactID:</b> {{$value.ArtifactID}}</pre>
+                                        <pre><b>Version:</b> {{ if eq $value.Version nil }} <input type="text" value="" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '{{$value.GroupID}}', 'artifactId': '{{$value.ArtifactID}}'} , this.value)" /> 
+                                            {{ else }} <input type="text" value="{{$value.Version}}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '{{$value.GroupID}}', 'artifactId': '{{$value.ArtifactID}}'} , this.value)" /> 
+                                            {{ end }}
+                                        </pre>
+                                    </div>
+                                {{end}}
+                            </div> -->
+                            <input type="hidden" id="projectId" value="{{.projectId}}"/>
+                            <input type="hidden" id="repoIds" value="" />
+                        </form>
+                        <div class="cascade_actions"><button class="btn btn-primary" onclick="deps.goToTab('v-pills-cr-tab')">Back</button><button class="btn btn-primary" onclick="deps.goToTab('v-pills-pc-tab')">Next</button></div>
+                    </div>
+                    <div class="tab-pane fade card" id="v-pills-pc" role="tabpanel" aria-labelledby="v-pills-pc-tab">
+                        <h6><b>Push Changes</b></h6><hr/>
+                        <div class="row"> 
+                            <div class="col-md-4 col-sm-4">
+                                <form id="commitForm">
+                                    <div class="form-group" style="margin-bottom: 0px;">
+                                        
+                                        <input type="text" class="form-control" name="commitMessage" id="commitMessage" placeholder="Commit Message ..."/>
+                                        <span id="cm_err" style="color: red;display: none;">Commit message required!</span>
+                                        <br />
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-md-4 col-sm-4">
+                                <button class="btn btn-sm btn-primary" onclick="deps.vcPushChanges()">Push</button>
+                            </div>
+                            <div class="col-md-4 col-sm-4"></div>
+                        </div>
+                        <div class="cascade_actions"><button class="btn btn-primary" onclick="deps.goToTab('v-pills-uv-tab')">Back</button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+            <!-- <ul class="nav nav-tabs" id="cascadeTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="ChooseRepos-tab" data-toggle="tab" role="tab" aria-controls="ChooseRepos" aria-selected="true">Choose Repos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="UpdateVersions-tab" data-toggle="tab" role="tab" aria-controls="UpdateVersions" aria-selected="false">Update Versions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="UpdateVersions-tab" data-toggle="tab" role="tab" aria-controls="UpdateVersions" aria-selected="false">Update Versions</a>
+                </li>
+            </ul> -->
+
+            <!-- Tab Panels -->
+            <!-- <div class="tab-content" id="cascadeTabPanel">
+                <div class="tab-pane fade show card active" id="ChooseRepos" role="tabpanel" aria-labelledby="ChooseRepos-tab">
+                    <br />
+                    <div style="display: flex;">
+                        <input type="checkbox" id="chooseAllRepos" onchange="deps.chooseAllRepos()" />
+                        <span style="padding-left:10px;">
+                            <b>CHOOSE ALL</b>
+                        </span>
+                    </div>
+                    <hr />
+                    <form name="repoListForm">
+                        <ul style="padding-left: 0px; min-height: 350px; height: 350px; overflow-y: auto;">
+                        {{range .repositories}}
+                            <li style="display: flex; margin-bottom:10px;">
+                                <input type="checkbox" name="repositories" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
+                                <div style="padding-left:10px;" for="{{.Name}}">
+                                    <b>{{.Name}}</b>
+                                    <p>{{.Url}}</p>
+                                </div>
+                            </li>
+                        {{end}}
+                        </ul>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="deps.getVCDeps()" id="vcNext">Next</button>
+                </div>
+                <div class="tab-pane fade card" id="UpdateVersions" role="tabpanel" aria-labelledby="UpdateVersions-tab" style="height: 300px; min-height: 300px; overflow-y: auto;">
+                    <form name="vcDepsForm">
+                        <div class="displayJCSB">
+                            <b>Properties</b> 
+                            <span class="anchor" onclick="deps.maven.addProperty()"> 
+                                <i class="fa fa-plus"></i> Add Property
+                            </span>
+                        </div>
+                        
+                        <div class="card">
+                            <ul id="properties"></ul>
+                        </div>
+                        <div class="displayJCSB">
+                            <b>Dependencies</b> 
+                            <span class="anchor" onclick="deps.maven.addDependency()">
+                                <i class="fa fa-plus"></i> Add Dependency
+                            </span>
+                        </div>
+                        <div id="dependencies"></div>
+                        <input type="hidden" id="projectId" value="{{.projectId}}"/>
+                        <input type="hidden" id="repoIds" value="" />
+                    </form>
+                </div>
+            </div> -->
+        </div>
+        <!-- <div class="col-md-3 col-sm-3">
+            <form id="commitForm">
+                <div class="form-group" style="margin-bottom: 0px;">
+                    <input type="hidden" value="a" id="repoId"/>
+                    <input type="hidden" value="aa" id="projectId"/>
+                    <input type="hidden" value="aaa" id="branch"/>
+                    <input type="hidden" value="aaaa" id="sha"/>
+                    <input type="text" class="form-control" name="commitMessage" id="commitMessage" placeholder="Commit Message ..."/>
+                    <span id="cm_err" style="color: red;display: none;">Commit message required!</span>
+                    <br />
+                </div>
+            </form>
+            <button class="btn btn-sm btn-primary" onclick="deps.updateChanges()">Push Changes</button>
+        </div> -->
+    </div>
+</main>
+{{template "footer" .}}
+{{end}}

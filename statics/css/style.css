@@ -12,8 +12,8 @@ body {
 }
 
 header {
-    background-color: var(--while-color);
-    color: var(--solid-color);
+    background-color: var(--solid-color);
+    color: var(--while-color);
     border-bottom: 1px dotted #ccc;
 }
 
@@ -27,7 +27,7 @@ input[type="text"], select {
 }
 
 .logo a {
-    color: var(--solid-color);
+    color: var(--white-color);
     text-decoration: none;
 }
 
@@ -50,12 +50,16 @@ p, h5, h4, h3, h2, h1, pre {
     margin: 0px;
 }
 
+.anchor {
+    cursor: pointer;
+}
+
 .navbar {
     padding: 0px;
 }
 
 .navbar-nav .nav-item a {
-    color: var(--solid-color);
+    color: var(--gray-color);
     padding: 10px 0px;
 }
 
@@ -102,6 +106,7 @@ p, h5, h4, h3, h2, h1, pre {
     padding-top: 5px;
     display: flex;
     justify-content: space-between;
+    color: var(--gray-color);
 }
 
 .project_actions i {
@@ -141,8 +146,20 @@ p, h5, h4, h3, h2, h1, pre {
     color: var(--while-color) !important;
 }
 
+.repo_list {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
+
 .repo_list p b {
     color: var(--solid-color);
+}
+
+.repo_actions i {
+    margin-left: 10px;
+    color: var(--gray-color);
+    cursor: pointer;
 }
 
 .repo_meta small {
@@ -227,4 +244,31 @@ p, h5, h4, h3, h2, h1, pre {
     color: #ccc;
     /* display: block; */
     width: 100%;
+}
+
+.propRemove {
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+#cascadeTabPanel .card {
+    margin-top: 0px;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color: var(--solid-color);
+}
+
+.cascade_actions {
+    border-top: 1px dotted #ccc;
+    padding-top: 10px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    background: #fff;
+}
+
+.repo_title {
+    display: flex;
+    justify-content: space-between;
 }

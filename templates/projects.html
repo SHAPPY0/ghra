@@ -10,16 +10,16 @@
             {{range $p := .projects}}
                 <div class="col-md-4 col-sm-4">
                     <div class="card">
-                        <a class="card_anchor" href="/project/{{$p.id}}">
-                            <p><b>{{$p.id}}. {{$p.name}}</b></p>
+                        <a class="card_anchor" href="/project/{{$p.id}}?repos=true">
+                            <p><b>{{$p.name}}</b></p>
                             <div>{{$p.description}}</div>
                         </a>
                         <div class="project_actions">
+                            <small>{{$p.createdAt | TimeDuration}}</small>
                             <div>
                                 <i onclick="editProject('{{$p.id}}')" class="fa fa-pencil"></i>
                                 <i onclick="deleteProject('{{$p.id}}')" class="fa fa-trash"></i>
                             </div>
-                            <small>{{$p.createdAt | FormatDate "Monday, 02 Jan 2006"}}</small>
                         </div>
                     </div>
                 </div>

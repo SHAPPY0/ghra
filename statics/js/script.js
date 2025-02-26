@@ -35,6 +35,14 @@ UTILS.formatDate = function(date) {
     return formatted_date
 }
 
+UTILS.NewInputTextNode = function(name, id) {
+    let input = document.createElement("input");
+    input.id = id;
+    input.name = name;
+    input.placeholder = `Enter ${name}`;
+    return input;
+}
+
 async function onSignup() {
     let form = document.forms["signupForm"];
     let signupReq = {
@@ -140,7 +148,23 @@ async function commitChanges(e) {
 }
 
 async function editProject(id) {
-    alert(id);
+    try {
+        let modalElm = document.getElementById("projectModal");
+        let projectFrom = document.forms["projectForm"];
+        const rawResponse = await fetch(`/project/${id}/json`, {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            }
+        });
+        let result = await rawResponse.json();
+        let modal = new bootstrap.Modal(modalElm);
+        modal.show();
+    } catch(ex) {
+        console.log(ex)
+    }
+    
 }
 
 async function deleteProject(id) {
@@ -159,3 +183,54 @@ async function deleteProject(id) {
         showAlert("Success", result.message);
     } else showAlert("Error", result.message);
 }
+
+async function editRepo(repoId) {
+    let projectId = document.getElementById("projectId").value;
+    if (!repoId || !projectId) {
+        return;
+    }
+    const rawResponse = await fetch(`/repository/${projectId}/${repoId}`, {
+        method: "GET",
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+        }
+    });
+    let result = await rawResponse.json();
+    if (result && result.status == 200){
+        let data = result.data;
+        let modal = new bootstrap.Modal(document.getElementById("repoModal"));
+        modal.show();
+        let form = document.forms["repoForm"];
+        form.url.value = data.Url;
+        form.name.value = data.Name;
+        form.branch.value = data.Branch;
+        form.user.value = data.User;
+        form.token.value = data.Token;
+        form.buildTool.value = data.BuildTool;
+        form.depFilePath.value = data.DepFilePath;
+        form.tags.value = data.Tags;
+        document.getElementById("updateRepoBtn").style.display = "block";
+        document.getElementById("addRepoBtn").style.display = "none";
+        document.getElementById("type").innerHTML = "UPDATE";
+    } else showAlert("Error", result.message);
+}
+
+async function deleteRepo(repoId) {
+    if (!window.confirm("Are you sure to delete repository?")) return;
+    let projectId = document.getElementById("projectId").value;
+    if (!repoId || !projectId) {
+        return;
+    }
+    const rawResponse = await fetch(`/repository/${projectId}/${repoId}`, {
+        method: "DELETE",
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+        }
+    });
+    let result = await rawResponse.json();
+    if (result && result.status == 200) showAlert("Success", result.message);
+    else showAlert("Error", result.message);
+}
+

@@ -22,6 +22,7 @@ func InitTemplate(mux *http.ServeMux) {
 	var err error
 	tmm := template.FuncMap{
 		"FormatDate": utils.FormateDate,
+		"TimeDuration": utils.TimeDuration,
 	}
 	tmpl, err = template.New("").Funcs(tmm).ParseGlob("templates/*.html")
 

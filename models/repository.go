@@ -47,7 +47,7 @@ type RepoReq struct {
 }
 
 type CommitReq struct {
-	NewContent	map[string]interface{}
+	Content	map[string]interface{}
 	Message		string
 	Branch		string
 	SHA			string

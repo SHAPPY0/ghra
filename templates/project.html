@@ -25,17 +25,24 @@
         </div>
         <div class="row">
             <div class="col-md-9 col-sm-9">
-                {{range .repositories}}
+                {{range $r := .repositories}}
                     <div class="card repo_list">
-                        <a class="card_anchor" href="/repository/{{.Id}}/deps?projectId={{.ProjectId}}">
-                            <p><b>{{.Name}}</b></p>
-                            <p>{{.Url}}</p>
-                            <div class="repo_meta">
-                                <small><b>Build Tool:</b> {{.BuildTool}}</small>
-                                <small><b>Dep FilePath:</b> {{.DepFilePath}}</small>
-                            </div>
-                            <div class="repo_tags"><small class="badge">{{.Tags}}</small></div>
-                        </a>
+                        <div>
+                            <a class="card_anchor" href="/repository/{{.Id}}/deps?projectId={{.ProjectId}}">
+                                <p><b>{{$r.Name}}</b></p>
+                                <p>{{$r.Url}}</p>
+                                <div class="repo_meta">
+                                    <small><b>Build Tool:</b> {{$r.BuildTool}}</small>
+                                    <small><b>Dep FilePath:</b> {{$r.DepFilePath}}</small>
+                                </div>
+                                <div class="repo_tags"><small class="badge">{{$r.Tags}}</small></div>
+                            </a>
+                        </div>
+                        <div class="repo_actions">
+                            <i class="fa fa-pencil" onclick="editRepo('{{$r.Id}}')"></i>
+                            <i class="fa fa-trash" onclick="deleteRepo('{{$r.Id}}')"></i>
+                        </div>
+                        
                     </div>
                 {{end}}
                 {{ $length := len .repositories }} {{ if eq $length 0 }}
@@ -43,17 +50,18 @@
                 {{ end }}
             </div>
             <div class="col-md-3 col-sm-3">
-                <b>Repository Cascade</b>
+                <b>Cascading</b>
                 <div class="card right_nav">
                     <ul class="nav">
-                        <li><a data-toggle="modal" data-target="">Add New Dependencies</a></li>
-                        <li><a data-toggle="modal" data-target="#versionCascadeModal">Update Versions</a></li>
+                        <li><a href="/repositories/cascade/add/deps?projectId={{.projectId}}">Add New Dependencies</a></li>
+                        <li><a href="/repositories/cascade/update/deps?projectId={{.projectId}}">Update Versions</a></li>
                     </ul>
                 </div>
             </div>
         </div>
         {{template "repoModal" .}}
-        {{template "versionCascadeModal" .}}
+        <!-- {{template "addNewCascadeModal" .}}
+        {{template "updateCascadeModal" .}} -->
     </main>
 {{template "footer" .}}
 {{end}}

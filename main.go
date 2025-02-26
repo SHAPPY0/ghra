@@ -21,8 +21,12 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/signup", handlers.SignupHandler)
 	mux.HandleFunc("/projects", handlers.ProjectsHandler)
 	mux.HandleFunc("/project/{id}", handlers.ProjectHandler)
+	mux.HandleFunc("/project/{id}/json", handlers.ProjectHandler)
+	// mux.HandleFunc("/project/{id}/repositories", handlers.RepositoriesHandler)
 	mux.HandleFunc("/repository", handlers.RepositoriesHandler)
+	mux.HandleFunc("/repository/{projectId}/{repoId}", handlers.RepositoriesHandler)
 	mux.HandleFunc("/repository/{id}/deps", handlers.RepositoriesHandler)
+	mux.HandleFunc("/repositories/cascade/{type}/deps", handlers.RepositoriesHandler)
 	mux.HandleFunc("/deps", handlers.DependenciesHandler)
 	mux.HandleFunc("/vc/deps", handlers.DependenciesHandler)
 
@@ -55,7 +59,7 @@ func dbMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	var port int
-	flag.IntVar(&port, "port", 8080, "Webserver port")
+	flag.IntVar(&port, "port", 8184, "Webserver port")
 	flag.Parse()
 
 	mux := http.NewServeMux()

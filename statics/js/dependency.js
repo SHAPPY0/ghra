@@ -3,8 +3,96 @@ function dependency() {
     this.dependencies = [];
     this.versionCascade = {
         repositories: [],
+        selectedTab: "v-pills-cr-tab",
     };
 }
+
+dependency.prototype.maven = {
+    newProperties: [],
+    newDependencies: [],
+    addProperty: function() {
+        this.newProperties.push({"name": "", "version": ""});
+        this.renderNewPropForm();
+    },
+    addDependency: function() {
+        this.newDependencies.push({"groupId": "", "artifactId": "", "version": ""});
+        this.renderNewDepsForm();
+    },
+    renderNewPropForm: function() {
+        let propsElm = document.getElementById("properties");
+        this.resetPropsForm();
+        for(let i = 0; i < this.newProperties.length; i++) {
+            let li = document.createElement("li");
+            li.className = "newProp";
+            let nameInput = UTILS.NewInputTextNode("name", "name");
+            nameInput.setAttribute("onchange", `deps.maven.onPropertyChange(${i}, 'name', this.value)`)
+            let colon = document.createElement("span");
+            colon.innerHTML = "&nbsp;:&nbsp;";
+            let versionInput = UTILS.NewInputTextNode("version", "version");
+            versionInput.setAttribute("onchange", `deps.maven.onPropertyChange(${i}, 'version', this.value)`)
+            let removeIcon = document.createElement("i");
+            removeIcon.className = "fa fa-remove propRemove";
+            removeIcon.setAttribute("onclick", `deps.maven.removeProperty('${i}')`);
+            li.appendChild(nameInput);
+            li.appendChild(colon);
+            li.appendChild(versionInput);
+            li.appendChild(removeIcon);
+            propsElm.appendChild(li);
+        }
+    },
+    renderNewDepsForm: function() {
+        let depsElm = document.getElementById("deps");
+        this.resetDepsForm();
+        for (let i = 0; i < this.newDependencies.length; i++) {
+            let div = document.createElement("div");
+            div.className = "card newDep";
+            for (let k in this.newDependencies[i]) {
+                let pre = document.createElement("pre");
+                let span = document.createElement("span");
+                let b = document.createElement("b");
+                b.innerHTML = `${k}: `;
+                span.appendChild(b);
+                pre.appendChild(span);
+                let input = UTILS.NewInputTextNode(k, k);
+                input.setAttribute("onchange", `deps.maven.onDependencyChange(${i}, '${k}', this.value)`)
+                pre.appendChild(input);
+                div.appendChild(pre);
+            }
+            depsElm.appendChild(div);
+        }
+    },
+    onPropertyChange: function(index, key, value) {
+        this.newProperties[index][key] = value;
+    },
+    onDependencyChange: function(index, key, value) {
+        this.newDependencies[index][key] = value;
+    },
+    removeProperty: function(index) {
+        this.newProperties.splice(index, 1);
+        this.renderNewPropForm();
+    },
+    removeDependency: function(index) {
+        this.newDependencies.splice(index, 1);
+        this.renderNewDepsForm();
+    },
+    resetPropsForm: function() {
+        let propsElm = document.getElementById("properties");
+        let newProps = propsElm.getElementsByClassName("newProp");
+        let newPropList = [...newProps];
+        for (let i = 0; i < newPropList.length; i++) {
+            newProps[0].remove();
+        }
+    },
+    resetDepsForm: function() {
+        let depElm = document.getElementById("deps");
+        let newDep = depElm.getElementsByClassName("newDep");
+        let newDepsList = [...newDep];
+        for (let i = 0; i < newDepsList.length; i++) {
+            newDep[0].remove();
+        }
+
+    }
+};
 
 dependency.prototype.onVersionChange = function(type, version, option) {
     if (type === "property") {
@@ -31,7 +119,12 @@ dependency.prototype.updateChanges = async function() {
     let form = document.forms["commitForm"];
     let cm_err = document.getElementById("cm_err");
     let data = {
-        "newContent": {"properties": this.properties, "dependencies": this.dependencies},
+        "content": {
+            "properties": this.properties, 
+            "dependencies": this.dependencies, 
+            "newProperties": this.maven.newProperties,
+            "newDependencies": this.maven.newDependencies
+        },
         "projectId": parseInt(form.projectId.value),
         "repoId": parseInt(form.repoId.value),
         "message": form.commitMessage.value,
@@ -68,9 +161,11 @@ dependency.prototype.onRepoSelect = function(repoId) {
 
 dependency.prototype.chooseAllRepos = function() {
     let chooseAll = document.getElementById("chooseAllRepos");
-    let form = document.forms["repoListForm"];
+    // let form = document.forms["repoListForm"];
+    // form.repositories = Array.isArray(form.repositories) ? form.repositories : [form.repositories];
+    let repos = document.getElementsByName("repository");
     if (chooseAll.checked) {
-        form.repositories.forEach(repo => {
+        repos.forEach(repo => { 
             let repoId = parseInt(repo.value);
             if (this.versionCascade.repositories.indexOf(repoId) == -1) {
                 this.versionCascade.repositories.push(parseInt(repo.value));
@@ -79,11 +174,10 @@ dependency.prototype.chooseAllRepos = function() {
         });
     } else {
         this.versionCascade.repositories = [];
-        form.repositories.forEach(repo => {
+        repos.forEach(repo => {
             repo.checked = false;
         })
     }
-    console.log(this.versionCascade.repositories);
 }
 
 dependency.prototype.vcBack = function() {
@@ -94,10 +188,19 @@ dependency.prototype.vcBack = function() {
     openTab(0);
 }
 
+dependency.prototype.checkReposSelected = function() {
+    let repoIds = this.versionCascade.repositories;
+    if (!repoIds.length) {
+        showAlert("Error", "Please choose one or more repositories.");
+        return false;
+    }
+    return true;
+}
+
 dependency.prototype.getVCDeps = async function() {
     let repoIds = this.versionCascade.repositories;
 
-    if (repoIds.length) {
+    if (deps.checkReposSelected()) {
         let data = {
             "repoIds": repoIds,
             "projectId": parseInt(document.getElementById("projectId").value || 0),
@@ -115,15 +218,9 @@ dependency.prototype.getVCDeps = async function() {
         });
         let result = await rawResponse.json();
         if (result && result.status == 200){
-            document.getElementById("vcCancel").style.display = "none";
-            document.getElementById("vcNext").style.display = "none";
-            document.getElementById("vcBack").style.display = "block";
-            document.getElementById("vcPushChanges").style.display = "block";
             bindVCDeps(result);
-            openTab(1);
+            // openTab(1);
         } else showAlert("Error", result.error || result.message);
-    } else {
-        showAlert("Error", "Please choose one or more repositories.");
     }
 }
 
@@ -135,8 +232,7 @@ function bindVCDeps(result) {
     let propList = "";
     for (let prop in Properties) {
         propList += `<li>
-                    <pre><span id="${prop}">${prop}:</span>
-                    <input type="text" value="${Properties[prop]}" onchange="deps.onVersionChange('property', this.value, {'name': '${prop}'})" /></pre>
+                    <pre id="${prop}">${prop}:<input type="text" value="${Properties[prop]}" onchange="deps.onVersionChange('property', this.value, {'name': '${prop}'})" /></pre>
                 </li>`;
     }
     if (propList) propertiesDom.innerHTML = propList;
@@ -146,11 +242,11 @@ function bindVCDeps(result) {
     for (let i = 0; i < Dependencies.length; i++) {
         let dep = Dependencies[i];
         depsList += `<div class="card">
-                            <pre style="font-size: 14px;">${dep.GroupID}</pre>
-                            <pre class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;${dep.ArtifactID}</pre>
-                            <p class="inner_child">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                <input type="text" value="${dep.Version}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '${dep.GroupID}', 'artifactId': '${dep.ArtifactID}'})" />
-                            </p>
+                            <pre><b>GroupID:</b> ${dep.GroupID}</pre>
+                            <pre><b>ArtifactID:</b> ${dep.ArtifactID}</pre>
+                            <pre><b>Version:</b> ${!dep.Version ? `<input type="text" value="" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '${dep.GroupID}', 'artifactId': '${dep.ArtifactID}'})" />` : 
+                                `<input type="text" value="${dep.Version}" onchange="deps.onVersionChange('dependency', this.value, {'groupId': '${dep.GroupID}', 'artifactId': '${dep.ArtifactID}'})" />`
+                            }</pre>
                         </div>`;
     }
     if (depsList) dependencies.innerHTML = depsList;
@@ -162,8 +258,8 @@ function bindVCDeps(result) {
 
 function openTab(tabNo) {
     // Get all tabs and tab panes
-    var tabs = document.querySelectorAll("#myTab .nav-link");
-    var tabPanes = document.querySelectorAll("#myTabContent .tab-pane");
+    var tabs = document.querySelectorAll("#cascadeTabs .nav-link");
+    var tabPanes = document.querySelectorAll("#cascadeTabPanel .tab-pane");
 
     // Find the active tab
     var activeIndex = 0;
@@ -189,10 +285,10 @@ function openTab(tabNo) {
 
 dependency.prototype.vcPushChanges = async function() {
     let form = document.forms["vcDepsForm"];
-    let commitMsg = document.getElementById("message").value;
-    let repoIds = [];
+    let commitMsg = document.getElementById("commitMessage").value;
+    let repoIds = this.versionCascade.repositories;;
     let data = [];
-    form.repoIds.value.split(",").forEach(id => repoIds.push(parseInt(id)));
+    // form.repoIds.value.split(",").forEach(id => repoIds.push(parseInt(id)));
     if (!commitMsg) {
         alert("Please enter commit message")
         return;
@@ -200,7 +296,7 @@ dependency.prototype.vcPushChanges = async function() {
 
     for (let i = 0; i < repoIds.length; i++) {
         data.push({
-            "newContent": {"properties": this.properties, "dependencies": this.dependencies},
+            "content": {"properties": this.properties, "dependencies": this.dependencies, "newProperties": [], "newDependencies": []},
             "projectId": parseInt(form.projectId.value),
             "repoId": repoIds[i],
             "message": commitMsg
@@ -217,12 +313,47 @@ dependency.prototype.vcPushChanges = async function() {
     let result = await rawResponse.json();
     if (result && result.status == 200){
         msg = result.message + "\n\n" + JSON.stringify(result.data);
-        closeModal("versionCascadeModal");
+        // closeModal("updateCascadeModal");
         showAlert("Success", msg);
     } else {
         msg = (result.error || result.message) + "\n\n" + JSON.stringify(result.data);
         showAlert("Error", msg);
     } 
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const tabLinks = document.querySelectorAll('a[data-toggle="pill"]');
+    tabLinks.forEach(tab => {
+        tab.addEventListener("click", function (event) {
+            event.preventDefault();
+            // Remove active class from all tabs
+            tabLinks.forEach(t => t.classList.remove("active"));
+            this.classList.add("active");
+            // Get target tab pane ID from href
+            const targetTabPane = document.querySelector(this.getAttribute("href"));
+            // Hide all tab panes
+            document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("show", "active"));
+            // Show the clicked tab pane
+            targetTabPane.classList.add("show", "active");
+            deps.navPillChange(this.id);
+        });
+    });
+
+    
+});
+
+dependency.prototype.navPillChange = function(tabId) {
+    if (this.versionCascade.selectedTab != tabId) {
+        this.versionCascade.selectedTab = tabId;
+        if (tabId === "v-pills-uv-tab") deps.getVCDeps();
+        else if (tabId === "v-pills-pc-tab") deps.checkReposSelected();
+    }
+}
+
+dependency.prototype.goToTab = function(tabId) {
+    if (tabId) {
+        document.getElementById(tabId).click();
+    }
 }
 
 const deps = new dependency();

@@ -1,0 +1,70 @@
+{{define "updateCascadeModal"}}
+    <div class="modal fade" id="updateCascadeModal" tabindex="-1" role="dialog" aria-labelledby="updateCascadeModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document" style="max-width: 60%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="modal-title" id="updateCascadeModalLabel"><b>CASCADE UPDATE VERSION</b></p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                          <a class="nav-link active" id="ChooseRepos-tab" data-toggle="tab" role="tab" aria-controls="ChooseRepos" aria-selected="true">Choose Repos</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" id="UpdateVersions-tab" data-toggle="tab" role="tab" aria-controls="UpdateVersions" aria-selected="false">Update Versions</a>
+                        </li>
+                      </ul>
+                      <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="ChooseRepos" role="tabpanel" aria-labelledby="ChooseRepos-tab">
+                            <br />
+                            <div style="display: flex;">
+                                <input type="checkbox" id="chooseAllRepos" onchange="deps.chooseAllRepos()" />
+                                <span style="padding-left:10px;">
+                                    <b>CHOOSE ALL</b>
+                                </span>
+                            </div>
+                            <hr />
+                            <form name="repoListForm">
+                                <ul style="padding-left: 0px; min-height: 250px; height: 250px; overflow-y: auto;">
+                                {{range .repositories}}
+                                    <li style="display: flex; margin-bottom:10px;">
+                                        <input type="checkbox" name="repositories" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
+                                        <div style="padding-left:10px;" for="{{.Name}}">
+                                            <b>{{.Name}}</b>
+                                            <p>{{.Url}}</p>
+                                        </div>
+                                    </li>
+                                {{end}}
+                                </ul>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="UpdateVersions" role="tabpanel" aria-labelledby="UpdateVersions-tab" style="height: 300px; min-height: 300px; overflow-y: auto;">
+                            <form name="vcDepsForm">
+                                <b>Properties</b>
+                                <ul id="properties"></ul>
+
+                                <b>Dependencies</b>
+                                <div id="dependencies"></div>
+
+                                <input type="hidden" id="projectId" value=""/>
+                                <input type="hidden" id="repoIds" value="" />
+                            </form>
+                        </div>
+                      </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="vcCancel">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-toggle="tab" href="#chooseRepos" style="display: none;" onclick="deps.vcBack()" id="vcBack">Back</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="deps.getVCDeps()" id="vcNext">Next</button>
+                    <div style="display: none;" id="vcPushChanges">
+                        <input type="text" placeholder="Commit Message ..." id="message" />
+                        <button type="button" class="btn btn-sm btn-primary" onclick="deps.vcPushChanges()">Push Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
