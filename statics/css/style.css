@@ -272,3 +272,19 @@ p, h5, h4, h3, h2, h1, pre {
     display: flex;
     justify-content: space-between;
 }
+
+.metadata {
+    color: var(--gray-color);
+}
+
+.metadata span {
+    color: var(--solid-color);
+}
+
+#notif_alert {
+    width: 370px;
+    position: fixed;
+    right: 0px;
+    bottom: 0px;
+    display: none;
+}

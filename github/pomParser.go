@@ -22,6 +22,7 @@ func ModifyDeps(content string, deps map[string]interface{}) (string, error) {
 	if (content == "") {
 		return "", nil
 	}
+	parent := deps["parent"].(map[string]interface{})
 	properties := deps["properties"].(map[string]interface{})
 	dependencies := deps["dependencies"].([]interface{})
 	newProperties := deps["newProperties"].([]interface{})
@@ -31,11 +32,21 @@ func ModifyDeps(content string, deps map[string]interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	//modify parent 
+	if parent != nil && parsedPom.Parent != nil  {
+		parentDep := parsedPom.Parent
+		if parentDep != nil {
+			*parsedPom.Parent.Version = parent["version"].(string)
+		}
+	}
+
 	//modify properties
 	for k, v := range properties {
 		props := *parsedPom.Properties
 		props.Entries[k] = v.(string)
 	}
+	
 	//add new properties
 	for _, newProps := range newProperties {
 		props := *parsedPom.Properties
@@ -43,6 +54,7 @@ func ModifyDeps(content string, deps map[string]interface{}) (string, error) {
 		version := newProps.(map[string]interface{})["version"]
 		props.Entries[name.(string)] = version.(string)
 	}
+	
 	//modify Dependencies
 	for _, dep := range dependencies {
 		newDep := dep.(map[string]interface{})
@@ -53,6 +65,7 @@ func ModifyDeps(content string, deps map[string]interface{}) (string, error) {
 			} 
 		}
 	}
+
 	//add new dependencies
 	for _, dep := range newDependencies {
 		newDep := dep.(map[string]interface{})

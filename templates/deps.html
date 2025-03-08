@@ -4,14 +4,34 @@
         <div style="display: flex; justify-content: space-between;">
             <div>
                 <h5><b>{{.Name}}</b></h5>
-                <p>Deps FilePath: {{.DepFilePath}}</p>
+                <p><b>Branch:</b> <span>{{.Branch}}</span> 
+                    <b>Deps Filepath:</b> <span>{{.DepFilePath}}</span>
+                </p>
                
             </div>
         </div>
         <hr />
         <div class="row">
             <div class="col-md-9 col-sm-9">
-                <div>
+                {{if .Parent}}
+                    <div class="displayJCSB">
+                        <b>Parent</b>
+                    </div>
+                    <div id="mvnParent">
+                        {{if .Parent}}
+                            <div class="card">
+                                <pre><b>GroupID:</b> {{.Parent.GroupID}}</pre>
+                                <pre><b>ArtifactID:</b> {{.Parent.ArtifactID}}</pre>
+                                <pre><b>Version:</b> {{ if eq .Parent.Version nil }} <input type="text" value="" onchange="deps.onVersionChange('parent', this.value, {'groupId': '{{.Parent.GroupID}}', 'artifactId': '{{.Parent.ArtifactID}}'} , this.value)" /> 
+                                    {{ else }} <input type="text" value="{{.Parent.Version}}" onchange="deps.onVersionChange('parent', this.value, {'groupId': '{{.Parent.GroupID}}', 'artifactId': '{{.Parent.ArtifactID}}'} , this.value)" /> 
+                                    {{ end }}
+                                </pre>
+                            </div>
+                        {{end}}
+                    </div>
+                {{end}}
+
+                {{if .Properties}}
                     <div class="displayJCSB">
                         <b>Properties</b> 
                         <span class="anchor" onclick="deps.maven.addProperty()"> 
@@ -28,7 +48,7 @@
                             {{end}}
                         </ul>
                     </div>
-                </div>
+                {{end}}
                 
                 <div class="displayJCSB">
                     <b>Dependencies</b> 

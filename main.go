@@ -83,8 +83,8 @@ func main() {
 		Handler: enableCORS(dbMiddleware(mux)),
 	}
 	url := "http://localhost" + addr
-	log.Printf("Webserver starting on " + url + " and opening it in browser.")
-	go openWeb(url)
+	log.Printf("Webserver starting on " + url + " and open this URL in browser.")
+	// go openWeb(url)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Error: " + err.Error())
 	} 

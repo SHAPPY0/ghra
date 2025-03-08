@@ -1,5 +1,6 @@
 function dependency() {
     this.properties = {};
+    this.parent = {};
     this.dependencies = [];
     this.versionCascade = {
         repositories: [],
@@ -97,6 +98,12 @@ dependency.prototype.maven = {
 dependency.prototype.onVersionChange = function(type, version, option) {
     if (type === "property") {
         this.properties[option.name] = version;
+    } else if (type === "parent") {
+        this.parent = {
+            "groupId": option.groupId,
+            "artifactId": option.artifactId,
+            "version": version
+        }
     } else if (type === "dependency") {
         let dependency = {
             "groupId": option.groupId,
@@ -121,7 +128,8 @@ dependency.prototype.updateChanges = async function() {
     let data = {
         "content": {
             "properties": this.properties, 
-            "dependencies": this.dependencies, 
+            "dependencies": this.dependencies,
+            "parent": this.parent,
             "newProperties": this.maven.newProperties,
             "newDependencies": this.maven.newDependencies
         },
@@ -226,9 +234,25 @@ dependency.prototype.getVCDeps = async function() {
 
 function bindVCDeps(result) {
     let form = document.forms["vcDepsForm"];
+    let parentDom = document.getElementById("parent");
     let propertiesDom = document.getElementById("properties");
     let dependencies = document.getElementById("dependencies");
-    let { Properties, Dependencies } = result.data;
+    let { Parent, Properties, Dependencies } = result.data;
+
+    let parent = "";
+    if (Parent && Object.keys(Parent).length) {
+        parent += `<div class="card">
+                            <pre><b>GroupID:</b> ${Parent.GroupID}</pre>
+                            <pre><b>ArtifactID:</b> ${Parent.ArtifactID}</pre>
+                            <pre><b>Version:</b> ${!Parent.Version ? `<input type="text" value="" onchange="deps.onVersionChange('parent', this.value, {'groupId': '${Parent.GroupID}', 'artifactId': '${Parent.ArtifactID}'})" />` : 
+                                `<input type="text" value="${Parent.Version}" onchange="deps.onVersionChange('parent', this.value, {'groupId': '${Parent.GroupID}', 'artifactId': '${Parent.ArtifactID}'})" />`
+                            }</pre>
+                        </div>`
+    }
+
+    if (parent) parentDom.innerHTML = parent;
+    else parentDom.innerHTML = `<div>No common parent found</div>`;
+
     let propList = "";
     for (let prop in Properties) {
         propList += `<li>
@@ -296,7 +320,13 @@ dependency.prototype.vcPushChanges = async function() {
 
     for (let i = 0; i < repoIds.length; i++) {
         data.push({
-            "content": {"properties": this.properties, "dependencies": this.dependencies, "newProperties": [], "newDependencies": []},
+            "content": {
+                "parent": this.parent,
+                "properties": this.properties, 
+                "dependencies": this.dependencies, 
+                "newProperties": [], 
+                "newDependencies": []
+            },
             "projectId": parseInt(form.projectId.value),
             "repoId": repoIds[i],
             "message": commitMsg

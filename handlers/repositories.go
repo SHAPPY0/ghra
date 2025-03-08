@@ -171,6 +171,7 @@ func getDependencies(db *sql.DB, repoId, projectId int) (*models.RepoDeps, error
 		LinedContent: 	make(map[int]string, 0),
 		Dependencies: 	parsedContent.Dependencies,
 		Properties: 	parsedContent.Properties,
+		Parent:			parsedContent.Parent,
 	}
 	return &repoDeps, nil 
 }
@@ -278,6 +279,7 @@ func pushChanges(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var reqBody models.VCDepsReq
 	var repoDeps []models.RepoDeps
+	var commonParent *gopom.Parent
 	var commonProps map[string]string
 	var commonDeps []gopom.Dependency
 
@@ -297,9 +299,29 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			}
 			repoDeps = append(repoDeps, *repoDep)
 		}
-
 		commonProps = make(map[string]string, 0)
 		commonDeps = make([]gopom.Dependency, 0)
+
+		//filter common parent
+		isParentCommon := true
+		baseParent := repoDeps[0].Parent
+		if baseParent != nil {
+			for _, repoDep := range repoDeps[1:] {
+				parent := repoDep.Parent
+				if parent != nil {
+					if *baseParent.GroupID != *parent.GroupID || *baseParent.ArtifactID != *parent.ArtifactID || *baseParent.Version != *parent.Version {
+						isParentCommon = false
+					}
+				} else {
+					isParentCommon = false
+				}
+			}
+		} else {
+			isParentCommon = false
+		}
+		if isParentCommon {
+			commonParent = baseParent
+		}
 
 		//filter common properties
 		for k, v := range repoDeps[0].Properties.Entries {
@@ -339,6 +361,7 @@ func getVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		data := map[string]interface{} {
 			"ProjectId": reqBody.ProjectId,
 			"RepoIds": reqBody.RepoIds,
+			"Parent": commonParent,
 			"Properties": commonProps,
 			"Dependencies": commonDeps,
 		}

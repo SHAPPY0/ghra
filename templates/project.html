@@ -32,6 +32,7 @@
                                 <p><b>{{$r.Name}}</b></p>
                                 <p>{{$r.Url}}</p>
                                 <div class="repo_meta">
+                                    <small><b>Branch:</b> {{$r.Branch}}</small>
                                     <small><b>Build Tool:</b> {{$r.BuildTool}}</small>
                                     <small><b>Dep FilePath:</b> {{$r.DepFilePath}}</small>
                                 </div>
@@ -60,8 +61,6 @@
             </div>
         </div>
         {{template "repoModal" .}}
-        <!-- {{template "addNewCascadeModal" .}}
-        {{template "updateCascadeModal" .}} -->
     </main>
 {{template "footer" .}}
 {{end}}

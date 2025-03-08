@@ -14,11 +14,37 @@ function showAlert(type, msg) {
     }
 }
 
+function openModal(modalId) {
+    if (modalId) {
+        let modalElm = document.getElementById(modalId);
+        let modal = new bootstrap.Modal(modalElm);
+        modal.show();
+    }
+}
+
 function closeModal(modalId) {
     if (!modalId) return;
     let modal = document.getElementById(modalId);
-    let closeButton = modal.querySelector(".close");
-    if (closeButton) closeButton.click();
+    // let closeButton = modal.querySelector(".close");
+    // if (closeButton) closeButton.click();
+    let classes = [...modal.classList];
+    modal.classList[classes.indexOf("show")] = "hide";
+}
+
+function notify(show, status, msg) {
+    let notif_elm = document.getElementById("notif_alert");
+    let notif_status = document.getElementById("notif_status");
+    let notif_msg = document.getElementById("notif_msg");
+    if (show) {
+        notif_elm.style.display = "block";
+        notif_status.innerHTML = status;
+        notif_msg.innerHTML = msg;
+        setTimeout(() => this.notify(false), 5000);
+    } else {
+        notif_elm.style.display = "none";
+        notif_status.innerHTML = "";
+        notif_msg.innerHTML = "";
+    }
 }
 
 UTILS.formatDate = function(date) {
@@ -112,7 +138,7 @@ async function addRepository() {
     let result = await rawResponse.json();
     if (result && result.status == 200){
         closeModal("repoModal");
-        showAlert("Success", result.message);
+        notify(true, "Success", result.message);
     } else showAlert("Error", result.message);
 }
 
@@ -234,3 +260,10 @@ async function deleteRepo(repoId) {
     else showAlert("Error", result.message);
 }
 
+// function closeModal(modalId) {
+//     if (modalId) {
+//         let modalElm = document.getElementById(modalId);
+//         let modal = bootstrap.Modal.getInstance(modalElm);
+//         modal.hide();
+//     }
+// }

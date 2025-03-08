@@ -30,6 +30,7 @@ type RepoDeps struct {
 	SHA			string
 	Properties	*gopom.Properties
 	Dependencies *[]gopom.Dependency
+	Parent		*gopom.Parent
 	LinedContent map[int]string
 	DepHashed 	map[string]string
 }
