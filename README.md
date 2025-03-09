@@ -19,7 +19,7 @@ GHRA built for automating github repsoitories in bulk.
 3. Run binary file `./ghra` in terminal.
 4. Server will start and open the URL `http://localhost:8184`.
 
-**2. Buid Locally:**
+**2. Build Locally:**
 
 To build `ghra` locally, it requires `go` installed in the system.
 
