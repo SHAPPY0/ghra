@@ -13,7 +13,7 @@ GHRA built for automating github repsoitories in bulk.
 
 #### USES:
 **1. Binary:**
-1. Download binary file from.
+1. Download binary file from [Release](https://github.com/SHAPPY0/ghra/releases).
 2. Open terminal.
 2. Navigate to the directory where binary is downloaded.
 3. Run binary file `./ghra` in terminal.
