@@ -11,7 +11,7 @@ GHRA built for automating github repsoitories in bulk.
 3. `[TODO]` Create new branch from release tag (Cascaded).
 
 
-#### USES:
+### USES:
 **1. Binary:**
 1. Download binary file from [Release](https://github.com/SHAPPY0/ghra/releases).
 2. Open terminal.
