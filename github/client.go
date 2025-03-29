@@ -60,3 +60,49 @@ func PushChanges(ctx context.Context, repo models.Repository, fileObj *GhraFile,
 	}
     return true, nil
 }
+
+func GetReleaseTags(ctx context.Context, repo models.Repository) ([]*github.RepositoryRelease, error) {
+    ts := oauth2.StaticTokenSource(
+        &oauth2.Token{AccessToken: repo.Token},
+    )
+    client := github.NewClient(oauth2.NewClient(ctx, ts))
+	repoName := GetRepoName(repo.Url)
+    releases, _, err := client.Repositories.ListReleases(ctx, repo.User, repoName, nil)
+    if err != nil {
+        return nil, err
+    }
+    return releases, nil
+}
+
+func getSHA(ctx context.Context, client *github.Client, owner, repo, tagName string) (string, error) {
+    tagRef, _, err := client.Git.GetRef(ctx, owner, repo, "tags/"+tagName)
+	if err != nil {
+		return "", err
+	}
+	sha := tagRef.Object.GetSHA()
+    return sha, nil
+}
+
+func CreateBranch(ctx context.Context, repo models.Repository, tag, branch string) (bool, error) {
+    ts := oauth2.StaticTokenSource(
+        &oauth2.Token{AccessToken: repo.Token},
+    )
+    client := github.NewClient(oauth2.NewClient(ctx, ts))
+    repoName := GetRepoName(repo.Url)
+    owner := repo.User
+    sha, err := getSHA(ctx, client, owner, repoName, tag)
+    if err != nil {
+        return false, err
+    }
+    newRef := &github.Reference{
+        Ref:	github.String("refs/heads/" + branch),
+        Object: &github.GitObject{SHA: github.String(sha)},
+    }
+    ref, resp, err := client.Git.CreateRef(ctx, owner, repoName, newRef)
+    if err != nil {
+        return false, err
+    }
+    _ = ref
+    _ = resp
+    return true, nil
+}

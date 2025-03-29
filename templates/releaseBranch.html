@@ -1,0 +1,95 @@
+{{define "releaseBranch"}}
+{{template "header" .}}
+<main class="container">
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+            <!-- <h5><b>{{.projectName}}</b></h5> -->
+             <h5>Release Branch</h5>
+            <p>Create Branch From Release</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+            <hr />
+
+            <div class="row">
+                <input id="projectId" type="hidden" value="{{.projectId}}"/>
+                <!-- left nav tabs -->
+                <div class="col-3">
+                  <div class="nav card flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a class="nav-link active" id="v-pills-cr-tab" data-toggle="pill" href="#v-pills-cr" role="tab" aria-controls="v-pills-home" aria-selected="true">1. Choose Repos</a>
+                    <a class="nav-link" id="v-pills-rb-tab" data-toggle="pill" href="#v-pills-rb" role="tab" aria-controls="v-pills-rb" aria-selected="false">2. Choose Release & Branch</a>
+                    <!-- <a class="nav-link" id="v-pills-pc-tab" data-toggle="pill" href="#v-pills-pc" role="tab" aria-controls="v-pills-pc" aria-selected="false">3. Push Changes</a> -->
+                  </div>
+                </div>
+
+                <!-- nav tab panels -->
+                <div class="col-9">
+                  <div class="tab-content" id="v-pills-tabContent">
+                    <div class="tab-pane fade show card active" id="v-pills-cr" role="tabpanel" aria-labelledby="v-pills-cr-tab">
+                        <div style="display: flex;">
+                            <input type="checkbox" id="chooseAllRepos" onchange="deps.chooseAllRepos()" />
+                            <span style="padding-left:10px;">
+                                <b>CHOOSE ALL</b>
+                            </span>
+                        </div>
+                        <hr />
+                        <form name="repoListForm">
+                            <ul style="padding-left: 0px; min-height: 350px; height: 350px; overflow-y: auto;">
+                            {{range .repositories}}
+                                <li style="display: flex; margin-bottom:10px;">
+                                    <input type="checkbox" name="repository" id="{{.Name}}" value="{{.Id}}" onchange="deps.onRepoSelect('{{.Id}}')" />
+                                    <div style="padding-left:10px;" for="{{.Name}}">
+                                        <b>{{.Name}}</b>
+                                        <p>{{.Url}}</p>
+                                    </div>
+                                </li>
+                            {{end}}
+                            </ul>
+                        </form>
+                        <div class="cascade_actions"><span></span><button class="btn btn-primary" onclick="deps.goToTab('v-pills-rb-tab')">Next</button></div>
+                    </div>
+                    <div class="tab-pane fade card" id="v-pills-rb" role="tabpanel" aria-labelledby="v-pills-rb-tab">
+                        <table class="table" id="rb_table">
+                            <thead>
+                                <th>Repository</th>
+                                <th>Source Release Tag</th>
+                                <th>Target Branch</th>
+                            </thead>
+                            <tbody id="rb_table_tbody"></tbody>
+                        </table>
+                        <div class="cascade_actions">
+                            <button class="btn btn-primary" onclick="deps.goToTab('v-pills-cr-tab')">Back</button>
+                            <button class="btn btn-primary" onclick="deps.createBranch()">Create Branch</button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade card" id="v-pills-pc" role="tabpanel" aria-labelledby="v-pills-pc-tab">
+                        <h6><b>Push Changes</b></h6><hr/>
+                        <div class="row"> 
+                            <div class="col-md-4 col-sm-4">
+                                <form id="commitForm">
+                                    <div class="form-group" style="margin-bottom: 0px;">
+                                        
+                                        <input type="text" class="form-control" name="commitMessage" id="commitMessage" placeholder="Commit Message ..."/>
+                                        <span id="cm_err" style="color: red;display: none;">Commit message required!</span>
+                                        <br />
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-md-4 col-sm-4">
+                                <button class="btn btn-sm btn-primary" onclick="deps.vcPushChanges()">Push</button>
+                            </div>
+                            <div class="col-md-4 col-sm-4"></div>
+                        </div>
+                        <div class="cascade_actions"><button class="btn btn-primary" onclick="deps.goToTab('v-pills-rb-tab')">Back</button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+ 
+        </div> 
+    </div>
+</main>
+{{template "footer" .}}
+{{end}}

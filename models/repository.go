@@ -60,3 +60,17 @@ type VCDepsReq struct {
 	RepoIds []int
 	ProjectId int
 }
+
+type RepoRelease struct {
+	RepoName string
+	RepoId	string
+	Url		string
+	ReleaseTags []string
+}
+
+type BFRReq struct {
+	ProjectId string
+	RepoId	string
+	ReleaseTag	string
+	Branch	string
+}

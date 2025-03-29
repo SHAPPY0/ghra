@@ -260,10 +260,3 @@ async function deleteRepo(repoId) {
     else showAlert("Error", result.message);
 }
 
-// function closeModal(modalId) {
-//     if (modalId) {
-//         let modalElm = document.getElementById(modalId);
-//         let modal = bootstrap.Modal.getInstance(modalElm);
-//         modal.hide();
-//     }
-// }

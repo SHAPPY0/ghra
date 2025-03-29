@@ -27,6 +27,8 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/repository/{projectId}/{repoId}", handlers.RepositoriesHandler)
 	mux.HandleFunc("/repository/{id}/deps", handlers.RepositoriesHandler)
 	mux.HandleFunc("/repositories/cascade/{type}/deps", handlers.RepositoriesHandler)
+	mux.HandleFunc("/repositories/cascade/bfr", handlers.RepositoriesHandler)
+	mux.HandleFunc("/repositories/release-tags", handlers.RepositoriesHandler)
 	mux.HandleFunc("/deps", handlers.DependenciesHandler)
 	mux.HandleFunc("/vc/deps", handlers.DependenciesHandler)
 
@@ -83,8 +85,8 @@ func main() {
 		Handler: enableCORS(dbMiddleware(mux)),
 	}
 	url := "http://localhost" + addr
-	log.Printf("Webserver starting on " + url + " and open this URL in browser.")
-	// go openWeb(url)
+	log.Printf("Webserver starting on " + url + " and trying to open in default browser.")
+	go openWeb(url)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Error: " + err.Error())
 	} 

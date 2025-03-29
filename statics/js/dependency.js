@@ -2,7 +2,7 @@ function dependency() {
     this.properties = {};
     this.parent = {};
     this.dependencies = [];
-    this.versionCascade = {
+    this.cascade = {
         repositories: [],
         selectedTab: "v-pills-cr-tab",
     };
@@ -160,11 +160,10 @@ dependency.prototype.updateChanges = async function() {
 
 dependency.prototype.onRepoSelect = function(repoId) {
     repoId = parseInt(repoId);
-    let i = this.versionCascade.repositories.indexOf(repoId); 
+    let i = this.cascade.repositories.indexOf(repoId); 
     if (i > -1) {
-        this.versionCascade.repositories.splice(i, 1);
-    } else this.versionCascade.repositories.push(repoId);
-    console.log(this.versionCascade.repositories)
+        this.cascade.repositories.splice(i, 1);
+    } else this.cascade.repositories.push(repoId);
 }
 
 dependency.prototype.chooseAllRepos = function() {
@@ -175,13 +174,13 @@ dependency.prototype.chooseAllRepos = function() {
     if (chooseAll.checked) {
         repos.forEach(repo => { 
             let repoId = parseInt(repo.value);
-            if (this.versionCascade.repositories.indexOf(repoId) == -1) {
-                this.versionCascade.repositories.push(parseInt(repo.value));
+            if (this.cascade.repositories.indexOf(repoId) == -1) {
+                this.cascade.repositories.push(parseInt(repo.value));
                 repo.checked = true;
             }
         });
     } else {
-        this.versionCascade.repositories = [];
+        this.cascade.repositories = [];
         repos.forEach(repo => {
             repo.checked = false;
         })
@@ -197,7 +196,7 @@ dependency.prototype.vcBack = function() {
 }
 
 dependency.prototype.checkReposSelected = function() {
-    let repoIds = this.versionCascade.repositories;
+    let repoIds = this.cascade.repositories;
     if (!repoIds.length) {
         showAlert("Error", "Please choose one or more repositories.");
         return false;
@@ -206,7 +205,7 @@ dependency.prototype.checkReposSelected = function() {
 }
 
 dependency.prototype.getVCDeps = async function() {
-    let repoIds = this.versionCascade.repositories;
+    let repoIds = this.cascade.repositories;
 
     if (deps.checkReposSelected()) {
         let data = {
@@ -227,8 +226,88 @@ dependency.prototype.getVCDeps = async function() {
         let result = await rawResponse.json();
         if (result && result.status == 200){
             bindVCDeps(result);
-            // openTab(1);
         } else showAlert("Error", result.error || result.message);
+    }
+}
+
+dependency.prototype.getReleaseTags = async function() {
+    let { repositories } = this.cascade;
+    if (!deps.checkReposSelected()) return;
+    let projectId = document.getElementById("projectId").value;
+    let url = `/repositories/release-tags?projectId=${projectId}&repoIds=${repositories}`;
+    const rawResponse = await fetch(url, {
+        method: "GET",
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+        },
+        body: null
+    });
+    let result = await rawResponse.json();
+    if (result && result.status == 200){
+        let {data} = result;
+        let rb_tbody = document.getElementById("rb_table_tbody");
+        //Clean table rows
+        while (rb_tbody.rows.length > 0) {
+            rb_tbody.deleteRow(0);
+        }
+        //Render rows
+        for (let i = 0; i < data.length; i++) {
+            let each  = data[i];
+            let row = rb_tbody.insertRow(i);
+            row.setAttribute("data-repoId", each.RepoId);
+            row.insertCell(0).innerHTML = `<b>${each.RepoName}</b><br />${each.Url}`;
+            let tagList = document.createElement("select");
+            tagList.id = `tags_${each.RepoId}`;
+            tagList.className = "form-control";
+            tagList.onchange = function(value) {
+                console.log("asad", value);
+            }
+            for (let j = 0; j < each.ReleaseTags.length; j++) {
+                tagList.add(new Option(each.ReleaseTags[j], each.ReleaseTags[j]))
+            }
+            row.insertCell(1).innerHTML = tagList.outerHTML;
+            row.insertCell(2).innerHTML = `<input type='text' class='form-control' id='newBranch_${each.RepoId}' value='${tagList.value ? `branch-tag-${tagList.value}` : ""}' placeholder='New Branch Name' name='newBranchName' />`;
+        }
+    } else showAlert("Error", result.error || result.message);
+}
+
+dependency.prototype.createBranch = async function() {
+    if (window.confirm("Are you sure to proceed?")) {
+        let data = [];
+        let tbody = document.getElementById("rb_table_tbody");
+        tbody.childNodes.forEach(tr => {
+            let obj = {
+                "projectId": document.getElementById("projectId").value,
+                "repoId": tr.dataset.repoid, 
+                "releaseTag": "", 
+                "branch": ""
+            }
+            if (obj.repoId) {
+                let tagCell = tr.childNodes[1];
+                let branchCell = tr.childNodes[2];
+                if (tagCell) {
+                    obj.releaseTag = tagCell.childNodes[0].value;
+                }
+                if (branchCell) {
+                    obj.branch = branchCell.childNodes[0].value;
+                }
+            }
+            if (obj.releaseTag) data.push(obj);
+        });
+        if (!data.length) return
+        const rawResponse = await fetch("/repositories/cascade/bfr", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        let result = await rawResponse.json();
+        if (result && result.status == 200)
+            showAlert("Success", result.message || "Branches created from release");
+        else showAlert("Error", result.error || result.message);
     }
 }
 
@@ -310,7 +389,7 @@ function openTab(tabNo) {
 dependency.prototype.vcPushChanges = async function() {
     let form = document.forms["vcDepsForm"];
     let commitMsg = document.getElementById("commitMessage").value;
-    let repoIds = this.versionCascade.repositories;;
+    let repoIds = this.cascade.repositories;;
     let data = [];
     // form.repoIds.value.split(",").forEach(id => repoIds.push(parseInt(id)));
     if (!commitMsg) {
@@ -373,9 +452,10 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 dependency.prototype.navPillChange = function(tabId) {
-    if (this.versionCascade.selectedTab != tabId) {
-        this.versionCascade.selectedTab = tabId;
+    if (this.cascade.selectedTab != tabId) {
+        this.cascade.selectedTab = tabId;
         if (tabId === "v-pills-uv-tab") deps.getVCDeps();
+        else if (tabId === "v-pills-rb-tab") deps.getReleaseTags();
         else if (tabId === "v-pills-pc-tab") deps.checkReposSelected();
     }
 }

@@ -36,6 +36,16 @@ func RepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 		} else if r.Method == http.MethodDelete {
 			deleteRepository(w, r, db)
 		}
+	} else if utils.CheckRoute(r.URL.Path, `/repositories/cascade/bfr`) {
+		if r.Method == http.MethodGet {
+			renderCascadeBfr(w, r, db)
+		} else if r.Method == http.MethodPost {
+			createBranchFromRelease(w, r, db)
+		}
+	} else if utils.CheckRoute(r.URL.Path, `/repositories/release-tags`) {
+		if r.Method == http.MethodGet {
+			getReleaseTags(w, r, db)
+		}
 	} else {
 		if r.Method == http.MethodGet {
 			id := r.PathValue("id")
@@ -446,6 +456,11 @@ func getRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		ErrorResponse(w, http.StatusBadRequest, "RepoId/ProjectId required", nil)
 		return
 	}
+	repository := getRepositoryInfo(db, projectId, repoId)
+	Response(w, http.StatusOK, "", repository)
+}
+
+func getRepositoryInfo(db *sql.DB, projectId, repoId string) models.Repository {
 	var repository models.Repository
 	query := `SELECT id, projectId, name, url, branch, user, token, tags, buildTool, depFilePath, active, createdAt, updatedAt FROM repositories_tbl WHERE id = ? AND projectId = ?`;
 	db.QueryRow(query, repoId, projectId).Scan(&repository.Id,
@@ -462,7 +477,7 @@ func getRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		&repository.CreatedAt,
 		&repository.UpdatedAt,
 	)
-	Response(w, http.StatusOK, "", repository)
+	return repository
 }
 
 func deleteRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
