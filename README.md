@@ -8,7 +8,7 @@ GHRA built for automating github repsoitories in bulk.
 
 1. Update dependency versions (Cascaded).
 2. Add new dependencies (Cascaded).
-3. `[TODO]` Create new branch from release tag (Cascaded).
+3. Create new branch from release tag (Cascaded).
 
 
 ### USES:
