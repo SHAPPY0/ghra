@@ -2,8 +2,7 @@ const UTILS = {};
 
 function showAlert(type, msg) {
     let modalElm = document.getElementById("alertModal");
-    let modal = new bootstrap.Modal(modalElm);
-    if (modal) modal.show();
+    utils.openModal("alertModal");
     // let alertModal = document.getElementById("alertModal");
     let alertType = document.getElementById("alertType");
     let alertMsg = document.getElementById("alertMsg");
@@ -14,22 +13,6 @@ function showAlert(type, msg) {
     }
 }
 
-function openModal(modalId) {
-    if (modalId) {
-        let modalElm = document.getElementById(modalId);
-        let modal = new bootstrap.Modal(modalElm);
-        modal.show();
-    }
-}
-
-function closeModal(modalId) {
-    if (!modalId) return;
-    let modal = document.getElementById(modalId);
-    // let closeButton = modal.querySelector(".close");
-    // if (closeButton) closeButton.click();
-    let classes = [...modal.classList];
-    modal.classList[classes.indexOf("show")] = "hide";
-}
 
 function notify(show, status, msg) {
     let notif_elm = document.getElementById("notif_alert");
@@ -87,7 +70,7 @@ async function onSignup() {
     });
     let result = await rawResponse.json();
     if (result && result.status == 200){
-        closeModal("signupModal");
+        utils.closeModal("signupModal");
         showAlert("Success", result.message);
     } else showAlert("Error", result.message);
 }
@@ -108,10 +91,22 @@ async function createProject() {
     });
     let result = await rawResponse.json();
     if (result && result.status == 200){
-        closeModal("projectModal");
+        utils.closeModal("projectModal");
         // window.location = "/projects";
         showAlert("Success", result.message);
     } else showAlert("Error", result.message);
+}
+
+function openAddRepoModal() {
+    let modalId = "repoModal";
+    if (modalId) {
+        document.getElementById("branchDD").style.display = "none";
+        document.getElementById("branch").style.display = "block";
+        document.getElementById("updateRepoBtn").style.display = "none";
+        document.getElementById("addRepoBtn").style.display = "block";
+        document.getElementById("type").innerHTML = "ADD";
+        utils.openModal('repoModal');
+    }
 }
 
 async function addRepository() {
@@ -127,6 +122,10 @@ async function addRepository() {
         "depFilePath": form.depFilePath.value,
         "tags": form.tags.value,
     }
+    if (!reqData.projectId || !reqData.name || !reqData.url || !reqData.branch || !reqData.user || !reqData.token || !reqData.buildTool || !reqData.depFilePath) {
+        alert("Please enter valid values");
+        return;
+    }  
     const rawResponse = await fetch("/repository", {
         method: "POST",
         headers: {
@@ -137,7 +136,7 @@ async function addRepository() {
     });
     let result = await rawResponse.json();
     if (result && result.status == 200){
-        closeModal("repoModal");
+        utils.closeModal("repoModal");
         notify(true, "Success", result.message);
     } else showAlert("Error", result.message);
 }
@@ -185,8 +184,7 @@ async function editProject(id) {
             }
         });
         let result = await rawResponse.json();
-        let modal = new bootstrap.Modal(modalElm);
-        modal.show();
+        utils.openModal("projectModal");
     } catch(ex) {
         console.log(ex)
     }
@@ -206,7 +204,7 @@ async function deleteProject(id) {
     });
     let result = await rawResponse.json();
     if (result && result.status == 200){
-        showAlert("Success", result.message);
+        notify(true, "Success", result.message);
     } else showAlert("Error", result.message);
 }
 
@@ -225,20 +223,29 @@ async function editRepo(repoId) {
     let result = await rawResponse.json();
     if (result && result.status == 200){
         let data = result.data;
-        let modal = new bootstrap.Modal(document.getElementById("repoModal"));
-        modal.show();
-        let form = document.forms["repoForm"];
-        form.url.value = data.Url;
-        form.name.value = data.Name;
-        form.branch.value = data.Branch;
-        form.user.value = data.User;
-        form.token.value = data.Token;
-        form.buildTool.value = data.BuildTool;
-        form.depFilePath.value = data.DepFilePath;
-        form.tags.value = data.Tags;
-        document.getElementById("updateRepoBtn").style.display = "block";
-        document.getElementById("addRepoBtn").style.display = "none";
-        document.getElementById("type").innerHTML = "UPDATE";
+        if (data && Object.keys(data).length) {
+            let { repository, branches } = data;
+            utils.openModal("repoModal");
+            let form = document.forms["repoForm"];
+            form.url.value = repository.Url;
+            form.name.value = repository.Name;
+            form.user.value = repository.User;
+            form.token.value = repository.Token;
+            form.buildTool.value = repository.BuildTool;
+            form.depFilePath.value = repository.DepFilePath;
+            form.tags.value = repository.Tags;
+            let branchElm = document.getElementById("branchDD");
+            for(let i = 0; i < branches.length; i++) {
+                branchElm.add(new Option(branches[i], branches[i]));
+            }
+            form.branchDD.value = repository.Branch;
+            document.getElementById("branchDD").style.display = "block";
+            document.getElementById("branch").style.display = "none";
+            document.getElementById("updateRepoBtn").style.display = "block";
+            document.getElementById("addRepoBtn").style.display = "none";
+            document.getElementById("type").innerHTML = "UPDATE";
+        }
+        
     } else showAlert("Error", result.message);
 }
 
@@ -256,7 +263,7 @@ async function deleteRepo(repoId) {
         }
     });
     let result = await rawResponse.json();
-    if (result && result.status == 200) showAlert("Success", result.message);
+    if (result && result.status == 200) notify(true, "Success", result.message);
     else showAlert("Error", result.message);
 }
 

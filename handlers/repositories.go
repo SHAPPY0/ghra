@@ -90,7 +90,6 @@ func getRepositoryList(w http.ResponseWriter, r *http.Request, db *sql.DB, proje
 			&repo.UpdatedAt)
 		repositories = append(repositories, repo)
 	}
-	
 	return repositories, nil
 }
 
@@ -450,14 +449,24 @@ func pushVCDependencies(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func getRepository(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	ctx := context.Background()
+	result := map[string]interface{}{}
 	projectId := r.PathValue("projectId")
 	repoId := r.PathValue("repoId")
+
 	if projectId == "" || repoId == "" {
 		ErrorResponse(w, http.StatusBadRequest, "RepoId/ProjectId required", nil)
 		return
 	}
 	repository := getRepositoryInfo(db, projectId, repoId)
-	Response(w, http.StatusOK, "", repository)
+	branches, err := github.GetBranches(ctx, repository)
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+	result["repository"] = repository
+	result["branches"] = branches
+	Response(w, http.StatusOK, "OK", result)
 }
 
 func getRepositoryInfo(db *sql.DB, projectId, repoId string) models.Repository {

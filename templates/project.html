@@ -8,8 +8,7 @@
                 <input type="hidden" id="projectId" value="{{.project.Id}}" />
             </div>
             <div>
-                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#repoModal"><i class="fa fa-add"></i> Add New Repository</button>
-                <!-- <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button> -->
+                <button class="btn btn-sm btn-primary" onclick="openAddRepoModal()"><i class="fa fa-add"></i> Add New Repository</button>
             </div>
         </div>
         <hr />
@@ -19,8 +18,6 @@
                 <input type="text" placeholder="Search Repository ... " class="form-control" />
             </div>
             <div class="col-md-3 col-sm-3" style="text-align: right;">
-                
-                <!-- <button class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#versionCascadeModal">Version Cascade</button> -->
             </div>
         </div>
         <div class="row">
@@ -51,7 +48,7 @@
                 {{ end }}
             </div>
             <div class="col-md-3 col-sm-3">
-                <b>Cascading</b>
+                <b>CASCADE</b>
                 <div class="card right_nav">
                     <ul class="nav">
                         <li><a href="/repositories/cascade/bfr?projectId={{.projectId}}">Create Branch From Release</a></li>

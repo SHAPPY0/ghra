@@ -74,6 +74,32 @@ func GetReleaseTags(ctx context.Context, repo models.Repository) ([]*github.Repo
     return releases, nil
 }
 
+func GetBranches(ctx context.Context, repo models.Repository) ([]string, error) {
+    var branchList []string
+    ts := oauth2.StaticTokenSource(
+        &oauth2.Token{AccessToken: repo.Token},
+    )
+    client := github.NewClient(oauth2.NewClient(ctx, ts))
+	repoName := GetRepoName(repo.Url)
+    opt := &github.BranchListOptions{
+        ListOptions: github.ListOptions{PerPage: 100},
+    }
+    for {
+        branches, resp, err := client.Repositories.ListBranches(ctx, repo.User, repoName, opt)
+        if err != nil {
+            fmt.Errorf("Error fetching branches: %v", err)
+        }
+        for _, branch := range branches {
+            branchList = append(branchList, *branch.Name)
+        }
+        if resp.NextPage == 0 {
+            break
+        }
+        opt.Page = resp.NextPage
+    }
+    return branchList, nil
+}
+
 func getSHA(ctx context.Context, client *github.Client, owner, repo, tagName string) (string, error) {
     tagRef, _, err := client.Git.GetRef(ctx, owner, repo, "tags/"+tagName)
 	if err != nil {
